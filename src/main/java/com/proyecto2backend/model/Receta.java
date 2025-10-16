@@ -1,29 +1,30 @@
 package com.proyecto2backend.model;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Receta {
     private String id;                           // Id unico consecutivo de la receta
     private Paciente paciente;                   // Paciente que se le atribuye la receta
-    private List<RecetaDetalle> medicamentos;;             // Medicamento que se receta
+    private Medicamento medicamento;
+    private int cantidad;
+    private String indicaciones;
+    private int diasDuracion;
     private LocalDate fechaEntrega;
     private String estado;                       // Estado de la receta
-    private Medico medico;                       // Médico que la prescribe
 
     // Constructor sin parametros
-    public Receta() {
-        this.medicamentos = new ArrayList<>();
-    }
+    public Receta() {}
 
     // Constructor con parametros
-    public Receta(String id, Paciente paciente, LocalDate fechaEntrega, String estado) {
+    public Receta(String id, Paciente paciente, LocalDate fechaEntrega, Medicamento medicamento, int cantidad, String indicaciones, int diasDuracion) {
         this.id = id;
         this.paciente = paciente;
         this.fechaEntrega = fechaEntrega;
         this.estado = "Confeccionada";
-        this.medicamentos = new ArrayList<>();
+        this.medicamento = medicamento;
+        this.cantidad = cantidad;
+        this.indicaciones = indicaciones;
+        this.diasDuracion = diasDuracion;
     }
 
     // Getters y setters
@@ -39,13 +40,16 @@ public class Receta {
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
 
-    public List<RecetaDetalle> getMedicamentos() { return medicamentos; }
-    public void setMedicamentos(List<RecetaDetalle> medicamentos) { this.medicamentos = medicamentos; }
+    public Medicamento getMedicamento() { return medicamento; }
+    public void setMedicamento(Medicamento medicamento) { this.medicamento = medicamento; }
 
-    public Medico getMedico() { return medico; }
-    public void setMedico(Medico medico) { this.medico = medico; }
+    public int getCantidad() { return cantidad; }
+    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
 
+    public String getIndicaciones() { return indicaciones; }
+    public void setIndicaciones(String indicaciones) { this.indicaciones = indicaciones; }
 
-    // Metodo para agregar un detalle (medicamento con cantidad e indicaciones)
-    public void agregarMedicamento(RecetaDetalle detalle) { this.medicamentos.add(detalle); }
+    public int getDiasDuracion() { return diasDuracion; }
+    public void setDiasDuracion(int diasDuracion) { this.diasDuracion = diasDuracion; }
+
 }

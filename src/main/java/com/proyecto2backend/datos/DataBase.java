@@ -8,7 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class DataBase {
+public final class DataBase {
     private static HikariDataSource ds;
 
     private DataBase() {}
@@ -19,19 +19,20 @@ public class DataBase {
             Properties prop = new Properties();
             prop.load(in);
 
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(prop.getProperty("db.url"));
-            config.setUsername(prop.getProperty("db.user"));
-            config.setPassword(prop.getProperty("db.password"));
-
-            config.setMaximumPoolSize(Integer.parseInt(prop.getProperty("db.pool.size")));
-            config.setPoolName("hotelPool");
+            HikariConfig cfg = new HikariConfig();
+            cfg.setJdbcUrl(prop.getProperty("db.url"));
+            cfg.setUsername(prop.getProperty("db.user"));
+            cfg.setPassword(prop.getProperty("db.password"));
+            cfg.setMaximumPoolSize(Integer.parseInt(prop.getProperty("db.pool.size", "10")));
+            cfg.setPoolName("MyAppPool");
 
             // Configuracion opcional pero recomendada por el profe
-            config.setMinimumIdle(2);
-            config.setConnectionTimeout(10000);
-            config.setMaxLifetime(1800000);
+            cfg.setMinimumIdle(2);
+            cfg.setConnectionTimeout(10000);
+            cfg.setIdleTimeout(60000);
+            cfg.setMaxLifetime(1800000);
 
+            ds = new HikariDataSource(cfg);
         } catch (Exception e) {
             throw new RuntimeException("No se pudo iniciar el pool de conexiones", e);
         }
