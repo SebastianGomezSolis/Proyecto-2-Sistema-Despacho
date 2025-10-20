@@ -10,14 +10,15 @@ public class AdministradorDatos {
     public List<Administrador> findAll() throws SQLException {
         String sql = "SELECT * FROM administrador ORDER BY id";
 
-        try (Connection con = DataBase.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
+        try (Connection cn = DataBase.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
             List<Administrador> list = new ArrayList<>();
             while (rs.next()) {
                 list.add(new Administrador(
-                        rs.getString("id"),
+                        rs.getInt("id"),
+                        rs.getString("identificacion"),
                         rs.getString("clave")
                 ));
             }
@@ -25,16 +26,16 @@ public class AdministradorDatos {
         }
     }
 
-    public Administrador findById(String id) throws SQLException {
-        String sql = "SELECT * FROM administrador WHERE id = " + id;
-
+    public Administrador findById(int id) throws SQLException {
+        String sql = "Select * from administrador WHERE id = " + id;
         try (Connection cn = DataBase.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             Administrador encontrado = null;
             if (rs.next()) {
                 encontrado = new Administrador(
-                        rs.getString("id"),
+                        rs.getInt("id"),
+                        rs.getString("identificacion"),
                         rs.getString("clave")
                 );
             }
@@ -42,15 +43,33 @@ public class AdministradorDatos {
         }
     }
 
+    public Administrador findByIdentificacion(String identificacion) throws SQLException {
+        String sql = "SELECT * FROM administrador WHERE identificacion = ?";
+        try (Connection cn = DataBase.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setString(1, identificacion);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Administrador(
+                            rs.getInt("id"),
+                            rs.getString("identificacion"),
+                            rs.getString("clave")
+                    );
+                }
+                return null;
+            }
+        }
+    }
+
     public Administrador insert(Administrador administrador) throws SQLException {
-        String sql = "INSERT INTO administrador (id, clave) VALUES (?, ?)";
+        String sql = "INSERT INTO administrador (identificacion, clave) VALUES (?, ?)";
         try (Connection cn = DataBase.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, administrador.getId());
+            ps.setString(1, administrador.getIdentificacion());
             ps.setString(2, administrador.getClave());
             ps.executeUpdate();
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
                     return administrador;
                 }
             }
@@ -59,10 +78,11 @@ public class AdministradorDatos {
     }
 
     public Administrador update(Administrador administrador) throws SQLException {
-        String sql = "UPDATE administrador SET clave = ? WHERE id = ?";
+        String sql = "UPDATE administrador set identificacion = ?, clave = ? WHERE id = ?";
         try (Connection cn = DataBase.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1, administrador.getClave());
-            ps.setString(2, administrador.getId());
+            ps.setString(1, administrador.getIdentificacion());
+            ps.setString(2, administrador.getClave());
+            ps.setInt(3, administrador.getId());
             if (ps.executeUpdate() > 0) {
                 return administrador;
             } else {
@@ -71,7 +91,7 @@ public class AdministradorDatos {
         }
     }
 
-    public int delete(String id) throws SQLException {
+    public int delete(int id) throws SQLException {
         String sql = "DELETE FROM administrador WHERE id = " + id;
         try (Connection cn = DataBase.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {

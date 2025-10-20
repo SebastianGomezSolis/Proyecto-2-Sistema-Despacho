@@ -8,7 +8,7 @@ import java.util.List;
 
 public class MedicoDatos {
     public List<Medico> findAll() throws SQLException {
-        String sql = "Select * from medico ORDER BY id";
+        String sql = "SELECT * FROM medico ORDER BY id";
 
         try (Connection cn = DataBase.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
@@ -17,7 +17,8 @@ public class MedicoDatos {
             List<Medico> list = new ArrayList<>();
             while (rs.next()) {
                 list.add(new Medico(
-                        rs.getString("id"),
+                        rs.getInt("id"),
+                        rs.getString("identificacion"),
                         rs.getString("clave"),
                         rs.getString("nombre"),
                         rs.getString("especialidad")
@@ -27,16 +28,16 @@ public class MedicoDatos {
         }
     }
 
-    public Medico findById(String id) throws SQLException {
-        String sql = "Select * from medico where id = " + id;
-
+    public Medico findById(int id) throws SQLException {
+        String sql = "Select * from medico WHERE id = " + id;
         try (Connection cn = DataBase.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             Medico encontrado = null;
-            while (rs.next()) {
+            if (rs.next()) {
                 encontrado = new Medico(
-                        rs.getString("id"),
+                        rs.getInt("id"),
+                        rs.getString("identificacion"),
                         rs.getString("clave"),
                         rs.getString("nombre"),
                         rs.getString("especialidad")
@@ -46,40 +47,61 @@ public class MedicoDatos {
         }
     }
 
-    public Medico insert(Medico medico) throws SQLException {
-        String sql = "INSERT INTO medico (id, clave, nombre, especialidad) VALUES (?, ?, ?, ?)";
+    public Medico findByIdentificacion(String identificacion) throws SQLException {
+        String sql = "SELECT * FROM medico WHERE identificacion = ?";
+        try (Connection cn = DataBase.getConnection();
+             PreparedStatement ps = cn.prepareStatement(sql)) {
+            ps.setString(1, identificacion);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Medico(
+                            rs.getInt("id"),
+                            rs.getString("identificacion"),
+                            rs.getString("clave"),
+                            rs.getString("nombre"),
+                            rs.getString("especialidad")
+                    );
+                }
+                return null;
+            }
+        }
+    }
+
+    public Medico insert(Medico administrador) throws SQLException {
+        String sql = "INSERT INTO medico (identificacion, clave, nombre, especialidad) VALUES (?, ?, ?, ?)";
         try (Connection cn = DataBase.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, medico.getId());
-            ps.setString(2, medico.getClave());
-            ps.setString(3, medico.getNombre());
-            ps.setString(4, medico.getEspecialidad());
+            ps.setString(1, administrador.getIdentificacion());
+            ps.setString(2, administrador.getClave());
+            ps.setString(3, administrador.getNombre());
+            ps.setString(4, administrador.getEspecialidad());
             ps.executeUpdate();
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return medico;
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return administrador;
                 }
             }
             return null;
         }
     }
 
-    public Medico update(Medico medico) throws SQLException {
-        String sql = "UPDATE medico set nombre = ?, especialidad = ? WHERE id = ?";
+    public Medico update(Medico administrador) throws SQLException {
+        String sql = "UPDATE medico set identificacion = ?, clave = ?, nombre = ?, especialidad = ? WHERE id = ?";
         try (Connection cn = DataBase.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
-            ps.setString(1,"clave");
-            ps.setString(2, medico.getNombre());
-            ps.setString(3, medico.getEspecialidad());
-            ps.setString(4, medico.getId());
+            ps.setString(1, administrador.getIdentificacion());
+            ps.setString(2, administrador.getClave());
+            ps.setString(3, administrador.getNombre());
+            ps.setString(4, administrador.getEspecialidad());
+            ps.setInt(5, administrador.getId());
             if (ps.executeUpdate() > 0) {
-                return medico;
+                return administrador;
             } else {
                 return null;
             }
         }
     }
 
-    public int delete(String id) throws SQLException {
+    public int delete(int id) throws SQLException {
         String sql = "DELETE FROM medico WHERE id = " + id;
         try (Connection cn = DataBase.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {

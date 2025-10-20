@@ -1,18 +1,22 @@
 package com.proyecto2backend.model;
 
 public abstract class Usuario {
-    protected String id;
+    protected int id;
+    protected String identificacion;
     protected String clave;
 
-    protected Usuario(String id, String clave) {
+    protected Usuario(int id, String identificacion, String clave) {
         this.id = id;
+        this.identificacion = identificacion;
         this.clave = clave;
     }
 
-    public abstract String getId();
+    public abstract int getId();
+    public abstract String getIdentificacion();
     public abstract String getClave();
 
-    public abstract void setId(String id);
+    public abstract void setId(int id);
+    public abstract void setIdentificacion(String identificacion);
     public abstract void setClave(String clave);
 
     public abstract String getTipoUsuario();
