@@ -58,7 +58,6 @@ public class RecetaController {
     @FXML
     public void GuardarMedicamento() {
         try {
-
             if (medicamentoSeleccionado == null || recetaActual == null) {
                 mostrarAlerta("Error", "Faltan datos para guardar el medicamento.");
                 return;
@@ -128,6 +127,4 @@ public class RecetaController {
             this.recetaDetalleSeleccionado = det;
         }
     }
-
-
 }

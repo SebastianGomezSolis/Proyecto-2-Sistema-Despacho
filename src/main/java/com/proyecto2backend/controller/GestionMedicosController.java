@@ -3,6 +3,7 @@ package com.proyecto2backend.controller;
 import com.proyecto2backend.logic.*;
 import com.proyecto2backend.model.*;
 import com.proyecto2backend.utilitarios.Sesion;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,6 +20,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,116 +36,81 @@ public class GestionMedicosController implements Initializable {
     private static final String PREFIJO_ID_PACIENTE = "PAC";
 
     // Tabla y columnas
-    @FXML
-    private TableView<Medico> tablaMedicos;
-    @FXML
-    private TableColumn<Medico, String> colIdMedico;
-    @FXML
-    private TableColumn<Medico, String> colNombreMedico;
-    @FXML
-    private TableColumn<Medico, String> colEspecialidadMedico;
+    @FXML private TableView<Medico> tablaMedicos;
+    @FXML private TableColumn<Medico, String> colIdMedico;
+    @FXML private TableColumn<Medico, String> colNombreMedico;
+    @FXML private TableColumn<Medico, String> colEspecialidadMedico;
+    @FXML private ProgressIndicator progressMedicos;
+    @FXML private Button btnGuardarMedico;
+    @FXML private Button btnBorrarMedico;
 
-    @FXML
-    private TableView<Farmaceuta> tablaFarmaceutas;
-    @FXML
-    private TableColumn<Farmaceuta, String> colIdFarmaceutas;
-    @FXML
-    private TableColumn<Farmaceuta, String> colNombreFarmaceutas;
+    @FXML private TableView<Farmaceuta> tablaFarmaceutas;
+    @FXML private TableColumn<Farmaceuta, String> colIdFarmaceutas;
+    @FXML private TableColumn<Farmaceuta, String> colNombreFarmaceutas;
+    @FXML private ProgressIndicator progressFarmaceutas;
+    @FXML private Button btnGuardarFamaceutas;
+    @FXML private Button btnBorrarFarmaceutas;
 
+    @FXML private TableView<Paciente> tablaPacientes;
+    @FXML private TableColumn<Paciente, String> colIdPaciente;
+    @FXML private TableColumn<Paciente, String> colNombrePaciente;
+    @FXML private TableColumn<Paciente, String> colTelefonoPaciente;
+    @FXML private TableColumn<Paciente, String> colFechaNacimientoPaciente;
+    @FXML private ProgressIndicator progressPacientes;
+    @FXML private Button btnGuardarPaciente;
+    @FXML private Button btnBorrarPaciente;
 
-    @FXML
-    private TableView<Paciente> tablaPacientes;
-    @FXML
-    private TableColumn<Paciente, String> colIdPaciente;
-    @FXML
-    private TableColumn<Paciente, String> colNombrePaciente;
-    @FXML
-    private TableColumn<Paciente, String> colTelefonoPaciente;
-    @FXML
-    private TableColumn<Paciente, String> colFechaNacimientoPaciente;
+    @FXML private TableView<Medicamento> tablaMedicamentos;
+    @FXML private TableColumn<Medicamento, String> colCodigoMedicamento;
+    @FXML private TableColumn<Medicamento, String> colNombreMedicamento;
+    @FXML private TableColumn<Medicamento, String> colDescripcionMedicamento;
+    @FXML private ProgressIndicator progressMedicamentos;
+    @FXML private Button btnGuardarMedicamento;
+    @FXML private Button btnBorrarMedicamento;
 
-    @FXML
-    private TableView<Medicamento> tablaMedicamentos;
-    @FXML
-    private TableColumn<Medicamento, String> colCodigoMedicamento;
-    @FXML
-    private TableColumn<Medicamento, String> colNombreMedicamento;
-    @FXML
-    private TableColumn<Medicamento, String> colDescripcionMedicamento;
-
-
-    @FXML
-    private TableView<RecetaDetalle> tablaPrescripcion;
-    @FXML
-    private TableColumn<RecetaDetalle, String> colMedicamento;
-    @FXML
-    private TableColumn<RecetaDetalle, String> colPresentacion;
-    @FXML
-    private TableColumn<RecetaDetalle, String> colCantidad;
-    @FXML
-    private TableColumn<RecetaDetalle, String> colIndicaciones;
-    @FXML
-    private TableColumn<RecetaDetalle, String> colDuracion;
+    @FXML private TableView<RecetaDetalle> tablaPrescripcion;
+    @FXML private TableColumn<RecetaDetalle, String> colMedicamento;
+    @FXML private TableColumn<RecetaDetalle, String> colPresentacion;
+    @FXML private TableColumn<RecetaDetalle, String> colCantidad;
+    @FXML private TableColumn<RecetaDetalle, String> colIndicaciones;
+    @FXML private TableColumn<RecetaDetalle, String> colDuracion;
+    @FXML private ProgressIndicator progressPrescripcion;
+    @FXML private Button btnGuardarPrescripcion;
+    @FXML private Button btnLimpiarMedico1112;
 
     // Campos de texto
-    @FXML
-    private TextField txtIdMedico;
-    @FXML
-    private TextField txtNombreMedico;
-    @FXML
-    private TextField txtEspecialidadMedico;
-    @FXML
-    private TextField txtBuscarMedico;
+    @FXML private TextField txtIdMedico;
+    @FXML private TextField txtNombreMedico;
+    @FXML private TextField txtEspecialidadMedico;
+    @FXML private TextField txtBuscarMedico;
 
-    @FXML
-    private TextField txtIdFarmaceutas;
-    @FXML
-    private TextField txtNombreFarmaceutas;
-    @FXML
-    private TextField txtBuscarFarmaceutas;
+    @FXML private TextField txtIdFarmaceutas;
+    @FXML private TextField txtNombreFarmaceutas;
+    @FXML private TextField txtBuscarFarmaceutas;
 
-    @FXML
-    private TextField txtIdPaciente;
-    @FXML
-    private TextField txtNombrePaciente;
-    @FXML
-    private TextField txtTelefonoPaciente;
-    @FXML
-    private DatePicker dtpFechaNacimientoPaciente;
-    @FXML
-    private TextField txtBuscarPaciente;
+    @FXML private TextField txtIdPaciente;
+    @FXML private TextField txtNombrePaciente;
+    @FXML private TextField txtTelefonoPaciente;
+    @FXML private DatePicker dtpFechaNacimientoPaciente;
+    @FXML private TextField txtBuscarPaciente;
 
-    @FXML
-    private TextField txtCodigoMedicamento;
-    @FXML
-    private TextField txtNombreMedicamento;
-    @FXML
-    private TextField txtDescripcionMedicamneto;
-    @FXML
-    private TextField txtBuscarMedicamento;
+    @FXML private TextField txtCodigoMedicamento;
+    @FXML private TextField txtNombreMedicamento;
+    @FXML private TextField txtDescripcionMedicamneto;
+    @FXML private TextField txtBuscarMedicamento;
 
-    @FXML
-    private DatePicker dtpFechaRetiro;
+    @FXML private DatePicker dtpFechaRetiro;
 
     // Tabs
-    @FXML
-    private TabPane tabPane;
-    @FXML
-    private Tab tabMedicos;
-    @FXML
-    private Tab tabPacientes;
-    @FXML
-    private Tab tabMedicamentos;
-    @FXML
-    private Tab tabDashboard;
-    @FXML
-    private Tab tabPrescribir;
-    @FXML
-    private Tab tabHistorico;
-    @FXML
-    private Tab tabAcercaDe;
-    @FXML
-    private Tab tabFarmaceutas;
+    @FXML private TabPane tabPane;
+    @FXML private Tab tabMedicos;
+    @FXML private Tab tabPacientes;
+    @FXML private Tab tabMedicamentos;
+    @FXML private Tab tabDashboard;
+    @FXML private Tab tabPrescribir;
+    @FXML private Tab tabHistorico;
+    @FXML private Tab tabAcercaDe;
+    @FXML private Tab tabFarmaceutas;
     @FXML private Tab tabDespacho;
 
     // DashBoard
@@ -161,7 +128,7 @@ public class GestionMedicosController implements Initializable {
     @FXML private TableColumn<Receta, String> colEstadoHistorico;
     @FXML private ComboBox<String> CB_Receta;
     @FXML private TextField TXT_RecetaHistorico;
-
+    @FXML private ProgressIndicator progressHistorico;
 
     //Despacho
     @FXML private TableView<Receta> TV_Despacho;
@@ -172,10 +139,9 @@ public class GestionMedicosController implements Initializable {
     @FXML private ComboBox<String> CB_RecetaDespacho;
     @FXML private ComboBox<String> CB_NuevoEstadoDespacho;
     @FXML private TextField TXT_RecetaDespacho;
+    @FXML private ProgressIndicator progressDespacho;
 
-
-    @FXML
-    private Label LBL_Nombre;
+    @FXML private Label LBL_Nombre;
 
     private Paciente pacienteSeleccionado;
     private Receta recetaActual;
@@ -202,19 +168,22 @@ public class GestionMedicosController implements Initializable {
         try {
             System.out.println("[DEBUG] Iniciando GestionMedicosController...");
 
-            // Configuración básica que siempre funciona
+            // Medicos
             colIdMedico.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getIdentificacion()));
             colNombreMedico.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getNombre()));
             colEspecialidadMedico.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getEspecialidad()));
 
+            // Farmaceutas
             colIdFarmaceutas.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getIdentificacion()));
             colNombreFarmaceutas.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getNombre()));
 
+            // Pacientes
             colIdPaciente.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getIdentificacion()));
             colNombrePaciente.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getNombre()));
             colTelefonoPaciente.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getTelefono()));
             colFechaNacimientoPaciente.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFechaNacimiento() != null ? cellData.getValue().getFechaNacimiento().toString() : ""));
 
+            // Medicamentos
             colCodigoMedicamento.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getCodigo()));
             colNombreMedicamento.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getNombre()));
             colDescripcionMedicamento.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDescripcion()));
@@ -301,57 +270,54 @@ public class GestionMedicosController implements Initializable {
             });
 
 
-            listaMedicos.addAll(medicoLogica.findAll());
+            // listaMedicos.addAll(medicoLogica.findAll());
             tablaMedicos.setItems(listaMedicos);
+            cargarMedicosAsync();
 
-            listaFarmaceutas.addAll(farmaceutaLogica.findAll());
+            // listaFarmaceutas.addAll(farmaceutaLogica.findAll());
             tablaFarmaceutas.setItems(listaFarmaceutas);
+            cargarFarmaceutasAsync();
 
-            listaPacientes.addAll(pacienteLogica.findAll());
+            // listaPacientes.addAll(pacienteLogica.findAll());
             tablaPacientes.setItems(listaPacientes);
+            cargarPacientesAsync();
 
-            listaMedicamentos.addAll(medicamentoLogica.findAll());
+            // listaMedicamentos.addAll(medicamentoLogica.findAll());
             tablaMedicamentos.setItems(listaMedicamentos);
+            cargarMedicamentoAsync();
 
-            listaHistoricoRecetas.setAll(recetaLogica.findAll());
+            // listaHistoricoRecetas.setAll(recetaLogica.findAll());
             TV_Historico.setItems(listaHistoricoRecetas);
+            cargarHistoricoAsync();
 
-            listaDespachoRecetas.setAll(recetaLogica.findAll());
+            // listaDespachoRecetas.setAll(recetaLogica.findAll());
             TV_Despacho.setItems(listaDespachoRecetas);
+            cargarDespachoAsync();
 
+            // List<Receta> recetas = recetaLogica.findAll();
+            // listaHistoricoRecetas.setAll(recetas);
+            // TV_Historico.setItems(listaHistoricoRecetas);
 
-            List<Receta> recetas = recetaLogica.findAll();
-            listaHistoricoRecetas.setAll(recetas);
-            TV_Historico.setItems(listaHistoricoRecetas);
-
-            listaDespachoRecetas.setAll(recetas);
-            TV_Despacho.setItems(listaDespachoRecetas);
+            // listaDespachoRecetas.setAll(recetas);
+            // TV_Despacho.setItems(listaDespachoRecetas);
 
             // Cargar IDs únicos en el ComboBox
-            List<String> ids = recetas.stream()
-                    .map(Receta::getIdentificacion)
-                    .distinct()
-                    .collect(Collectors.toList());
+            // List<String> ids = recetas.stream()
+            //        .map(Receta::getIdentificacion)
+            //        .distinct()
+            //        .collect(Collectors.toList());
 
-            CB_Receta.setItems(FXCollections.observableArrayList(ids));
-            CB_RecetaDespacho.setItems(FXCollections.observableArrayList(ids));
+            // CB_Receta.setItems(FXCollections.observableArrayList(ids));
+            // CB_RecetaDespacho.setItems(FXCollections.observableArrayList(ids));
 
-            CB_NuevoEstadoDespacho.setItems(FXCollections.observableArrayList(
-                    "Proceso", "Lista", "Entregada"));
+            CB_NuevoEstadoDespacho.setItems(FXCollections.observableArrayList("Proceso", "Lista", "Entregada"));
 
 
             //listaRecetas.addAll(recetaLogica.findAll());
             refrescarTablaPrescripcion();
 
             this.dashBoardLogica = new DashBoardLogica(recetaLogica);
-            try {
-                cargarGraficos();
-                System.out.println("[DEBUG] Gráficos cargados exitosamente");
-            } catch (Exception e) {
-                System.err.println("[ERROR] Error al cargar gráficos: " + e.getMessage());
-                e.printStackTrace();
-            }
-
+            cargarGraficos();
         } catch (Exception e) {
             Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, e);
         }
@@ -417,18 +383,58 @@ public class GestionMedicosController implements Initializable {
             Medico existente = medicoLogica.findByIdentificacion(identificacion);
             if (existente != null) {
                 nuevoMedico.setId(existente.getId());
-                medicoLogica.update(nuevoMedico);
-                mostrarAlerta("Médico modificado", "El médico ha sido modificado con éxito.", Alert.AlertType.INFORMATION);
-            } else {
-                medicoLogica.create(nuevoMedico);
-                mostrarAlerta("Médico agregado", "El médico ha sido agregado con éxito.", Alert.AlertType.INFORMATION);
             }
 
-            limpiarCamposMedico();
-            refrescarTablaMedico();
+            agregarMedicoAsync(nuevoMedico, tablaMedicos);
         } catch (Exception e) {
             mostrarAlerta("Error", e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    public void agregarMedicoAsync(Medico medico, TableView<Medico> tablaMedicos) {
+        btnGuardarMedico.setDisable(true);
+        progressMedicos.setVisible(true);
+        final boolean esUpdate = medico.getId() > 0;
+
+        Async.run(
+                () -> {
+                    try {
+                        if (esUpdate) {
+                            medicoLogica.update(medico);
+                            return medico;
+                        } else {
+                            Medico creado = medicoLogica.create(medico);
+                            if (creado != null && creado.getId() > 0) {
+                                medico.setId(creado.getId());
+                            }
+                            return medico;
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                guardado -> {
+                    btnGuardarMedico.setDisable(false);
+                    progressMedicos.setVisible(false);
+
+                    if (tablaMedicos != null) {
+                        if (esUpdate) {
+                            tablaMedicos.refresh();
+                        } else {
+                            tablaMedicos.getItems().add(guardado);
+                        }
+                    }
+                    new Alert(Alert.AlertType.INFORMATION,
+                            (esUpdate ? "Medico actualizado (ID: " : "Medico guardado (ID: ")
+                                    + guardado.getId() + ")").showAndWait();
+                    limpiarCamposMedico();
+                },
+                ex -> {
+                    btnGuardarMedico.setDisable(false);
+                    progressMedicos.setVisible(false);
+                    mostrarAlerta("Error", "No se pudo guardar el médico: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
     @FXML
@@ -453,14 +459,7 @@ public class GestionMedicosController implements Initializable {
             // Mostrar y esperar confirmación
             confirmacion.showAndWait().ifPresent(respuesta -> {
                 if (respuesta == ButtonType.OK) {
-                    try {
-                        medicoLogica.deleteById(seleccionado.getId());
-                        mostrarAlerta("Éxito", "El médico ha sido eliminado correctamente.", Alert.AlertType.INFORMATION);
-                        refrescarTablaMedico();
-                        limpiarCamposMedico();
-                    } catch (Exception e) {
-                        mostrarAlerta("Error al eliminar", e.getMessage(), Alert.AlertType.ERROR);
-                    }
+                    eliminarMedicoAsync(seleccionado, tablaMedicos);
                 }
             });
 
@@ -468,6 +467,35 @@ public class GestionMedicosController implements Initializable {
             mostrarAlerta("Error inesperado", "Ocurrió un error al intentar eliminar al médico. Inténtelo de nuevo.", Alert.AlertType.ERROR);
             error.printStackTrace();
         }
+    }
+
+    private void eliminarMedicoAsync(Medico seleccionado, TableView<Medico> tabla) {
+        btnBorrarMedico.setDisable(true);
+        progressMedicos.setVisible(true);
+
+        Async.run(
+                () -> {
+                    try {
+                        medicoLogica.deleteById(seleccionado.getId());
+                        return seleccionado.getId();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                idEliminado -> {
+                    btnBorrarMedico.setDisable(false);
+                    progressMedicos.setVisible(false);
+                    listaMedicos.removeIf(m -> m.getId() == idEliminado);
+                    if (tabla != null) tabla.refresh();
+                    mostrarAlerta("Éxito", "El médico ha sido eliminado correctamente.", Alert.AlertType.INFORMATION);
+                    limpiarCamposMedico();
+                },
+                ex -> {
+                    btnBorrarMedico.setDisable(false);
+                    progressMedicos.setVisible(false);
+                    mostrarAlerta("Error al eliminar", ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
     @FXML
@@ -494,15 +522,40 @@ public class GestionMedicosController implements Initializable {
         }
     }
 
+    public void cargarMedicosAsync() {
+        progressMedicos.setVisible(true);
+        Async.run(
+                () -> {
+                    try {
+                        return medicoLogica.findAll();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                lista -> {
+                    listaMedicos.setAll(lista);
+                    progressMedicos.setVisible(false);
+                },
+                ex -> {
+                    progressMedicos.setVisible(false);
+                    Alert a = new Alert(Alert.AlertType.ERROR);
+                    a.setTitle("Error al cargar a los medicos");
+                    a.setHeaderText(null);
+                    a.setContentText(ex.getMessage());
+                    a.showAndWait();
+                }
+        );
+    }
+
     @FXML
     private void mostrarReporteMedico() {
-       try {
-           listaMedicos.setAll(medicoLogica.findAll());
-           tablaMedicos.setItems(listaMedicos);
-           limpiarCamposMedico();
-       } catch (Exception e) {
-           Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, e);
-       }
+        try {
+            listaMedicos.setAll(medicoLogica.findAll());
+            tablaMedicos.setItems(listaMedicos);
+            limpiarCamposMedico();
+        } catch (Exception e) {
+            Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, e);
+        }
     }
 
     @FXML
@@ -524,41 +577,90 @@ public class GestionMedicosController implements Initializable {
         }
     }
 
-    // =========================== FARMACEUTAS ===========================
+    // ======================== FARMACEUTAS =========================
     @FXML
     private void agregarFarmaceuta() {
         try {
             String identificacion = txtIdFarmaceutas.getText().trim();
             String nombre = txtNombreFarmaceutas.getText().trim();
-            String numero = identificacion.substring(PREFIJO_ID_FARMACEUTA.length());
 
             if (identificacion.isEmpty() || nombre.isEmpty()) {
                 mostrarAlerta("Error", "Todos los campos son obligatorios.", Alert.AlertType.ERROR);
                 return;
             }
 
+            // Mismo estilo que usaste en Médicos: valida que tras el prefijo haya números
+            if (!identificacion.startsWith(PREFIJO_ID_FARMACEUTA) || identificacion.length() <= PREFIJO_ID_FARMACEUTA.length()) {
+                mostrarAlerta("Error", "El ID debe iniciar con " + PREFIJO_ID_FARMACEUTA + " y tener números después.", Alert.AlertType.ERROR);
+                return;
+            }
+            String numero = identificacion.substring(PREFIJO_ID_FARMACEUTA.length());
             if (!numero.matches("\\d+")) {
                 mostrarAlerta("Error", "El ID debe contener solo números después de " + PREFIJO_ID_FARMACEUTA, Alert.AlertType.ERROR);
                 return;
             }
 
-            Farmaceuta nueveFarmaceuta = new Farmaceuta(0, identificacion, identificacion, nombre);
+            // Construcción siguiendo tu firma de modelo (id, identificacion, usuario?, nombre)
+            Farmaceuta nuevoFarmaceuta = new Farmaceuta(0, identificacion, identificacion, nombre);
 
+            // Si existe -> update (como en Médicos)
             Farmaceuta existente = farmaceutaLogica.findByIdentificacion(identificacion);
             if (existente != null) {
-                nueveFarmaceuta.setId(existente.getId());
-                farmaceutaLogica.update(nueveFarmaceuta);
-                mostrarAlerta("Farmaceuta modificado", "El farmaceuta ha sido modificado con éxito.", Alert.AlertType.INFORMATION);
-            } else {
-                farmaceutaLogica.create(nueveFarmaceuta);
-                mostrarAlerta("Farmaceuta agregado", "El farmaceuta ha sido agregado con éxito.", Alert.AlertType.INFORMATION);
+                nuevoFarmaceuta.setId(existente.getId());
             }
 
-            limpiarCamposFarmaceuta();
-            refrescarTablaMedico();
+            agregarFarmaceutaAsync(nuevoFarmaceuta, tablaFarmaceutas);
         } catch (Exception e) {
             mostrarAlerta("Error", e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    public void agregarFarmaceutaAsync(Farmaceuta farmaceuta, TableView<Farmaceuta> tablaFarmaceutas) {
+        btnGuardarFamaceutas.setDisable(true);
+        progressFarmaceutas.setVisible(true);
+        final boolean esUpdate = farmaceuta.getId() > 0;
+
+        Async.run(
+                () -> {
+                    try {
+                        if (esUpdate) {
+                            farmaceutaLogica.update(farmaceuta);
+                            return farmaceuta;
+                        } else {
+                            Farmaceuta creado = farmaceutaLogica.create(farmaceuta);
+                            if (creado != null && creado.getId() > 0) {
+                                farmaceuta.setId(creado.getId());
+                            }
+                            return farmaceuta;
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                guardado -> {
+                    btnGuardarFamaceutas.setDisable(false);
+                    progressFarmaceutas.setVisible(false);
+
+                    if (tablaFarmaceutas != null) {
+                        if (esUpdate) {
+                            tablaFarmaceutas.refresh();
+                        } else {
+                            tablaFarmaceutas.getItems().add(guardado);
+                        }
+                    }
+
+                    new Alert(Alert.AlertType.INFORMATION,
+                            (esUpdate ? "Farmaceuta modificado (ID: " : "Farmaceuta agregado (ID: ")
+                                    + guardado.getId() + ")").showAndWait();
+
+                    limpiarCamposFarmaceuta();
+                },
+                ex -> {
+                    btnGuardarFamaceutas.setDisable(false);
+                    progressFarmaceutas.setVisible(false);
+                    mostrarAlerta("Error", "No se pudo guardar el farmaceuta: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
     @FXML
@@ -583,14 +685,7 @@ public class GestionMedicosController implements Initializable {
             // Mostrar y esperar confirmacion
             confirmacion.showAndWait().ifPresent(respuesta -> {
                 if (respuesta == ButtonType.OK) {
-                    try {
-                        farmaceutaLogica.deleteById(seleccionado.getId());
-                        mostrarAlerta("Éxito", "El farmaceuta ha sido eliminado correctamente.", Alert.AlertType.INFORMATION);
-                        refrescarTablaFarmaceuta();
-                        limpiarCamposFarmaceuta();
-                    } catch (Exception e) {
-                        mostrarAlerta("Error al eliminar", e.getMessage(), Alert.AlertType.ERROR);
-                    }
+                    eliminarFarmaceutaAsync(seleccionado, tablaFarmaceutas);
                 }
             });
 
@@ -598,6 +693,35 @@ public class GestionMedicosController implements Initializable {
             mostrarAlerta("Error inesperado", "Ocurrió un error al intentar eliminar al farmaceuta. Inténtelo de nuevo.", Alert.AlertType.ERROR);
             error.printStackTrace();
         }
+    }
+
+    private void eliminarFarmaceutaAsync(Farmaceuta seleccionado, TableView<Farmaceuta> tabla) {
+        btnBorrarFarmaceutas.setDisable(true);
+        progressFarmaceutas.setVisible(true);
+
+        Async.run(
+                () -> {
+                    try {
+                        farmaceutaLogica.deleteById(seleccionado.getId());
+                        return seleccionado.getId();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                idEliminado -> {
+                    btnBorrarFarmaceutas.setDisable(false);
+                    progressFarmaceutas.setVisible(false);
+                    listaFarmaceutas.removeIf(f -> f.getId() == idEliminado);
+                    if (tabla != null) tabla.refresh();
+                    mostrarAlerta("Éxito", "El farmaceuta ha sido eliminado correctamente.", Alert.AlertType.INFORMATION);
+                    limpiarCamposFarmaceuta();
+                },
+                ex -> {
+                    btnBorrarFarmaceutas.setDisable(false);
+                    progressFarmaceutas.setVisible(false);
+                    mostrarAlerta("Error al eliminar", ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
     @FXML
@@ -621,6 +745,31 @@ public class GestionMedicosController implements Initializable {
         } catch (Exception error) {
             mostrarAlerta("Error al buscar el farmaceuta", "Volver a intentarlo", Alert.AlertType.ERROR);
         }
+    }
+
+    public void cargarFarmaceutasAsync() {
+        progressFarmaceutas.setVisible(true);
+        Async.run(
+                () -> {
+                    try {
+                        return farmaceutaLogica.findAll();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                lista -> {
+                    listaFarmaceutas.setAll(lista);
+                    progressFarmaceutas.setVisible(false);
+                },
+                ex -> {
+                    progressFarmaceutas.setVisible(false);
+                    Alert a = new Alert(Alert.AlertType.ERROR);
+                    a.setTitle("Error al cargar a los farmaceutas");
+                    a.setHeaderText(null);
+                    a.setContentText(ex.getMessage());
+                    a.showAndWait();
+                }
+        );
     }
 
     @FXML
@@ -668,23 +817,62 @@ public class GestionMedicosController implements Initializable {
 
             Paciente nuevoPaciente = new Paciente(0, identificacion, nombre, fechaNacimiento, telefono);
 
+            // Si existe -> será UPDATE (seteamos id)
             Paciente existente = pacienteLogica.findByIdentificacion(identificacion);
             if (existente != null) {
                 nuevoPaciente.setId(existente.getId());
-                pacienteLogica.update(nuevoPaciente);
-                mostrarAlerta("Paciente modificado", "El paciente ha sido modificado con éxito.", Alert.AlertType.INFORMATION);
-            } else {
-                pacienteLogica.create(nuevoPaciente);
-                mostrarAlerta("Paciente agregado", "El paciente ha sido agregado con éxito.", Alert.AlertType.INFORMATION);
             }
 
-            limpiarCamposPaciente();
-            refrescarTablaPaciente();
+            agregarPacienteAsync(nuevoPaciente, tablaPacientes);
         } catch (Exception e) {
             mostrarAlerta("Error", e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
+    public void agregarPacienteAsync(Paciente paciente, TableView<Paciente> tablaPacientes) {
+        btnGuardarPaciente.setDisable(true);
+        progressPacientes.setVisible(true);
+        final boolean esUpdate = paciente.getId() > 0;
+
+        Async.run(
+                () -> {
+                    try {
+                        if (esUpdate) {
+                            pacienteLogica.update(paciente);
+                        } else {
+                            Paciente creado = pacienteLogica.create(paciente);
+                            if (creado != null && creado.getId() > 0) {
+                                paciente.setId(creado.getId());
+                            }
+                        }
+                        return paciente;
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                guardado -> {
+                    btnGuardarPaciente.setDisable(false);
+                    progressPacientes.setVisible(false);
+
+                    if (tablaPacientes != null) {
+                        if (esUpdate) {
+                            tablaPacientes.refresh();
+                        } else {
+                            tablaPacientes.getItems().add(guardado);
+                        }
+                    }
+                    new Alert(Alert.AlertType.INFORMATION,
+                            (esUpdate ? "Paciente modificado (ID: " : "Paciente agregado (ID: ")
+                                    + guardado.getId() + ")").showAndWait();
+                    limpiarCamposPaciente();
+                },
+                ex -> {
+                    btnGuardarPaciente.setDisable(false);
+                    progressPacientes.setVisible(false);
+                    mostrarAlerta("Error", "No se pudo guardar el paciente: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
+    }
 
     @FXML
     private void eliminarPaciente() {
@@ -708,14 +896,7 @@ public class GestionMedicosController implements Initializable {
             // Mostrar y esperar confirmacion
             confirmacion.showAndWait().ifPresent(respuesta -> {
                 if (respuesta == ButtonType.OK) {
-                    try {
-                        pacienteLogica.deleteById(seleccionado.getId());
-                        mostrarAlerta("Éxito", "El ppaciente ha sido eliminado correctamente.", Alert.AlertType.INFORMATION);
-                        refrescarTablaPaciente();
-                        limpiarCamposPaciente();
-                    } catch (Exception e) {
-                        mostrarAlerta("Error al eliminar", e.getMessage(), Alert.AlertType.ERROR);
-                    }
+                    eliminarPacienteAsync(seleccionado, tablaPacientes);
                 }
             });
 
@@ -724,6 +905,36 @@ public class GestionMedicosController implements Initializable {
             error.printStackTrace();
         }
     }
+
+    private void eliminarPacienteAsync(Paciente seleccionado, TableView<Paciente> tabla) {
+        btnBorrarPaciente.setDisable(true);
+        progressPacientes.setVisible(true);
+
+        Async.run(
+                () -> {
+                    try {
+                        pacienteLogica.deleteById(seleccionado.getId());
+                        return seleccionado.getId();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                idEliminado -> {
+                    btnBorrarPaciente.setDisable(false);
+                    progressPacientes.setVisible(false);
+                    listaPacientes.removeIf(p -> p.getId() == idEliminado);
+                    if (tabla != null) tabla.refresh();
+                    mostrarAlerta("Éxito", "El paciente ha sido eliminado correctamente.", Alert.AlertType.INFORMATION);
+                    limpiarCamposPaciente();
+                },
+                ex -> {
+                    btnBorrarPaciente.setDisable(false);
+                    progressPacientes.setVisible(false);
+                    mostrarAlerta("Error al eliminar", ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
+    }
+
 
     @FXML
     private void buscarPaciente() {
@@ -745,6 +956,31 @@ public class GestionMedicosController implements Initializable {
         } catch (Exception error) {
             mostrarAlerta("Error al buscar el paciente", "Volver a intentarlo", Alert.AlertType.ERROR);
         }
+    }
+
+    public void cargarPacientesAsync() {
+        progressPacientes.setVisible(true);
+        Async.run(
+                () -> {
+                    try {
+                        return pacienteLogica.findAll();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                lista -> {
+                    listaPacientes.setAll(lista);
+                    progressPacientes.setVisible(false);
+                },
+                ex -> {
+                    progressPacientes.setVisible(false);
+                    Alert a = new Alert(Alert.AlertType.ERROR);
+                    a.setTitle("Error al cargar a los pacientes");
+                    a.setHeaderText(null);
+                    a.setContentText(ex.getMessage());
+                    a.showAndWait();
+                }
+        );
     }
 
     @FXML
@@ -785,7 +1021,7 @@ public class GestionMedicosController implements Initializable {
         try {
             String codigo = txtCodigoMedicamento.getText().trim();
             String nombre = txtNombreMedicamento.getText().trim();
-            String descripcion = txtDescripcionMedicamneto.getText().trim();
+            String descripcion = txtDescripcionMedicamneto.getText().trim(); // (mantengo tu fx:id)
 
             if (codigo.isEmpty() || nombre.isEmpty() || descripcion.isEmpty()) {
                 mostrarAlerta("Error", "Todos los campos son obligatorios.", Alert.AlertType.ERROR);
@@ -794,22 +1030,61 @@ public class GestionMedicosController implements Initializable {
 
             Medicamento nuevoMedicamento = new Medicamento(0, codigo, nombre, descripcion);
 
+            // Si existe -> será UPDATE (setea id)
             Medicamento existente = medicamentoLogica.findByCodigo(codigo);
-
             if (existente != null) {
-                nuevoMedicamento.setId(existente.getId()); // update requiere id > 0
-                medicamentoLogica.update(nuevoMedicamento);
-                mostrarAlerta("Medicamento modificado", "El medicamento ha sido modificado con éxito.", Alert.AlertType.INFORMATION);
-            } else {
-                medicamentoLogica.create(nuevoMedicamento);
-                mostrarAlerta("Medicamento agregado", "El medicamento ha sido agregado con éxito.", Alert.AlertType.INFORMATION);
+                nuevoMedicamento.setId(existente.getId());
             }
 
-            limpiarCampoMedicamento();
-            refrescarTablaMedicamento();
+            agregarMedicamentoAsync(nuevoMedicamento, tablaMedicamentos);
         } catch (Exception e) {
             mostrarAlerta("Error", e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    public void agregarMedicamentoAsync(Medicamento medicamento, TableView<Medicamento> tablaMedicamentos) {
+        btnGuardarMedicamento.setDisable(true);
+        progressMedicamentos.setVisible(true);
+        final boolean esUpdate = medicamento.getId() > 0;
+
+        Async.run(
+                () -> {
+                    try {
+                        if (esUpdate) {
+                            medicamentoLogica.update(medicamento);
+                        } else {
+                            Medicamento creado = medicamentoLogica.create(medicamento);
+                            if (creado != null && creado.getId() > 0) {
+                                medicamento.setId(creado.getId());
+                            }
+                        }
+                        return medicamento;
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                guardado -> {
+                    btnGuardarMedicamento.setDisable(false);
+                    progressMedicamentos.setVisible(false);
+
+                    if (tablaMedicamentos != null) {
+                        if (esUpdate) {
+                            tablaMedicamentos.refresh();
+                        } else {
+                            tablaMedicamentos.getItems().add(guardado);
+                        }
+                    }
+                    new Alert(Alert.AlertType.INFORMATION,
+                            (esUpdate ? "Medicamento modificado (ID: " : "Medicamento agregado (ID: ")
+                                    + guardado.getId() + ")").showAndWait();
+                    limpiarCampoMedicamento();
+                },
+                ex -> {
+                    btnGuardarMedicamento.setDisable(false);
+                    progressMedicamentos.setVisible(false);
+                    mostrarAlerta("Error", "No se pudo guardar el medicamento: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
     @FXML
@@ -834,14 +1109,7 @@ public class GestionMedicosController implements Initializable {
             // Mostrar y esperar confirmación
             confirmacion.showAndWait().ifPresent(respuesta -> {
                 if (respuesta == ButtonType.OK) {
-                    try {
-                        medicamentoLogica.deleteById(seleccionado.getId());
-                        mostrarAlerta("Éxito", "El medicamento ha sido eliminado correctamente.", Alert.AlertType.INFORMATION);
-                        refrescarTablaMedicamento();
-                        limpiarCampoMedicamento();
-                    } catch (Exception e) {
-                        mostrarAlerta("Error al eliminar", e.getMessage(), Alert.AlertType.ERROR);
-                    }
+                    eliminarMedicamentoAsync(seleccionado, tablaMedicamentos);
                 }
             });
 
@@ -850,6 +1118,36 @@ public class GestionMedicosController implements Initializable {
             error.printStackTrace();
         }
     }
+
+    private void eliminarMedicamentoAsync(Medicamento seleccionado, TableView<Medicamento> tabla) {
+        btnBorrarMedicamento.setDisable(true);
+        progressMedicamentos.setVisible(true);
+
+        Async.run(
+                () -> {
+                    try {
+                        medicamentoLogica.deleteById(seleccionado.getId());
+                        return seleccionado.getId();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                idEliminado -> {
+                    btnBorrarMedicamento.setDisable(false);
+                    progressMedicamentos.setVisible(false);
+                    listaMedicamentos.removeIf(m -> m.getId() == idEliminado);
+                    if (tabla != null) tabla.refresh();
+                    mostrarAlerta("Éxito", "El medicamento ha sido eliminado correctamente.", Alert.AlertType.INFORMATION);
+                    limpiarCampoMedicamento();
+                },
+                ex -> {
+                    btnBorrarMedicamento.setDisable(false);
+                    progressMedicamentos.setVisible(false);
+                    mostrarAlerta("Error al eliminar", ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
+    }
+
 
     @FXML
     private void buscarMedicamento() {
@@ -873,6 +1171,31 @@ public class GestionMedicosController implements Initializable {
         } catch (Exception error) {
             mostrarAlerta("Error al buscar el medicamento", "Volver a intentarlo", Alert.AlertType.ERROR);
         }
+    }
+
+    public void cargarMedicamentoAsync() {
+        progressMedicamentos.setVisible(true);
+        Async.run(
+                () -> {
+                    try {
+                        return medicamentoLogica.findAll();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                lista -> {
+                    listaMedicamentos.setAll(lista);
+                    progressMedicamentos.setVisible(false);
+                },
+                ex -> {
+                    progressMedicamentos.setVisible(false);
+                    Alert a = new Alert(Alert.AlertType.ERROR);
+                    a.setTitle("Error al cargar a los medicamentos");
+                    a.setHeaderText(null);
+                    a.setContentText(ex.getMessage());
+                    a.showAndWait();
+                }
+        );
     }
 
     @FXML
@@ -996,7 +1319,7 @@ public class GestionMedicosController implements Initializable {
     @FXML
     private void guardarReceta() {
         try {
-            if (recetaActual == null) {
+            if (recetaActual == null || recetaActual.getMedicamento() == null) {
                 mostrarAlerta("Error", "No hay medicamentos en la receta.", Alert.AlertType.WARNING);
                 return;
             }
@@ -1004,15 +1327,50 @@ public class GestionMedicosController implements Initializable {
             if (fechaRetiro != null) {
                 recetaActual.setFechaEntrega(fechaRetiro);
             }
-            recetaLogica.create(recetaActual);
-            mostrarAlerta("Éxito", "Receta guardada correctamente.", Alert.AlertType.INFORMATION);
-            recetaActual = null;
-            refrescarTablaPrescripcion();
-            cargarGraficos();
-            refrescarTablaHistorico();
+            guardarRecetaAsync(recetaActual);
         } catch (Exception e) {
             mostrarAlerta("Error", "Error al guardar receta: " + e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    public void guardarRecetaAsync(Receta receta) {
+        btnGuardarPrescripcion.setDisable(true);
+        progressPrescripcion.setVisible(true);
+
+        Async.run(
+                () -> {
+                    try {
+                        Receta creada = recetaLogica.create(receta);
+                        if (creada != null) {
+                            receta.setId(creada.getId());
+                            receta.setIdentificacion(creada.getIdentificacion());
+                            receta.setEstado(creada.getEstado());
+                            receta.setFechaEntrega(creada.getFechaEntrega());
+                        }
+                        return receta;
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                guardada -> {
+                    progressPrescripcion.setVisible(false);
+                    btnGuardarPrescripcion.setDisable(false);
+
+                    mostrarAlerta("Éxito", "Receta guardada correctamente.", Alert.AlertType.INFORMATION);
+
+                    recetaActual = null;
+                    refrescarTablaPrescripcion();
+                    cargarGraficos();
+                    refrescarTablaHistorico();
+                    // Si tu pestaña de despacho depende de todas las recetas:
+                    // cargarDespachoAsync();
+                },
+                ex -> {
+                    progressPrescripcion.setVisible(false);
+                    btnGuardarPrescripcion.setDisable(false);
+                    mostrarAlerta("Error", "Error al guardar receta: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
     @FXML
@@ -1051,6 +1409,7 @@ public class GestionMedicosController implements Initializable {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com.proyecto2backend/view/Receta.fxml"));
             Parent root = loader.load();
+
 
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
@@ -1091,6 +1450,7 @@ public class GestionMedicosController implements Initializable {
             tablaPrescripcion.getItems().add(recetaActual.getMedicamento());
         }
     }
+
     // DASHBOARD
     public void cargarGraficos() {
         try {
@@ -1120,10 +1480,11 @@ public class GestionMedicosController implements Initializable {
                     data.nodeProperty().addListener((obs, oldNode, newNode) -> {
                         if (newNode != null) {
                             switch (e.getKey()) {
-                                case "Confeccionada" -> newNode.setStyle("-fx-bar-fill: #7B2CBF;"); // morado fuerte pastel
-                                case "Proceso"       -> newNode.setStyle("-fx-bar-fill: #9D4EDD;"); // violeta suave
-                                case "Lista"         -> newNode.setStyle("-fx-bar-fill: #C77DFF;"); // lila claro
-                                case "Entregada"     -> newNode.setStyle("-fx-bar-fill: #E0AAFF;"); // lavanda pastel
+                                case "Confeccionada" ->
+                                        newNode.setStyle("-fx-bar-fill: #7B2CBF;"); // morado fuerte pastel
+                                case "Proceso" -> newNode.setStyle("-fx-bar-fill: #9D4EDD;"); // violeta suave
+                                case "Lista" -> newNode.setStyle("-fx-bar-fill: #C77DFF;"); // lila claro
+                                case "Entregada" -> newNode.setStyle("-fx-bar-fill: #E0AAFF;"); // lavanda pastel
                             }
                         }
                     });
@@ -1143,10 +1504,11 @@ public class GestionMedicosController implements Initializable {
                         data.nodeProperty().addListener((obs, oldNode, newNode) -> {
                             if (newNode != null) {
                                 switch (e.getKey()) {
-                                    case "Confeccionada" -> newNode.setStyle("-fx-pie-color: #7B2CBF;"); // morado fuerte
-                                    case "Proceso"       -> newNode.setStyle("-fx-pie-color: #9D4EDD;"); // violeta suave
-                                    case "Lista"         -> newNode.setStyle("-fx-pie-color: #C77DFF;"); // lila claro
-                                    case "Entregada"     -> newNode.setStyle("-fx-pie-color: #E0AAFF;"); // lavanda
+                                    case "Confeccionada" ->
+                                            newNode.setStyle("-fx-pie-color: #7B2CBF;"); // morado fuerte
+                                    case "Proceso" -> newNode.setStyle("-fx-pie-color: #9D4EDD;"); // violeta suave
+                                    case "Lista" -> newNode.setStyle("-fx-pie-color: #C77DFF;"); // lila claro
+                                    case "Entregada" -> newNode.setStyle("-fx-pie-color: #E0AAFF;"); // lavanda
                                 }
                             }
                         });
@@ -1155,9 +1517,9 @@ public class GestionMedicosController implements Initializable {
                         if (data.getNode() != null) {
                             switch (e.getKey()) {
                                 case "Confeccionada" -> data.getNode().setStyle("-fx-pie-color: #7B2CBF;");
-                                case "Proceso"       -> data.getNode().setStyle("-fx-pie-color: #9D4EDD;");
-                                case "Lista"         -> data.getNode().setStyle("-fx-pie-color: #C77DFF;");
-                                case "Entregada"     -> data.getNode().setStyle("-fx-pie-color: #E0AAFF;");
+                                case "Proceso" -> data.getNode().setStyle("-fx-pie-color: #9D4EDD;");
+                                case "Lista" -> data.getNode().setStyle("-fx-pie-color: #C77DFF;");
+                                case "Entregada" -> data.getNode().setStyle("-fx-pie-color: #E0AAFF;");
                             }
                         }
                     }
@@ -1179,24 +1541,24 @@ public class GestionMedicosController implements Initializable {
 
     @FXML
     private void buscarRecetaHistorico() {
-       try {
-           String criterioIdCombo = CB_Receta.getValue() != null ? CB_Receta.getValue().trim().toLowerCase() : "";
-           String criterioTexto = TXT_RecetaHistorico.getText().trim().toLowerCase();
+        try {
+            String criterioIdCombo = CB_Receta.getValue() != null ? CB_Receta.getValue().trim().toLowerCase() : "";
+            String criterioTexto = TXT_RecetaHistorico.getText().trim().toLowerCase();
 
-           List<Receta> resultados = listaHistoricoRecetas.stream()
-                   .filter(r -> {
-                       if (r.getIdentificacion() == null) return false;
+            List<Receta> resultados = listaHistoricoRecetas.stream()
+                    .filter(r -> {
+                        if (r.getIdentificacion() == null) return false;
 
-                       boolean coincideCombo = criterioIdCombo.isEmpty() || r.getIdentificacion().toLowerCase().contains(criterioIdCombo);
-                       boolean coincideTexto = criterioTexto.isEmpty() || r.getIdentificacion().toLowerCase().contains(criterioTexto);
-                       return coincideCombo && coincideTexto;
-                   })
-                   .collect(Collectors.toList());
+                        boolean coincideCombo = criterioIdCombo.isEmpty() || r.getIdentificacion().toLowerCase().contains(criterioIdCombo);
+                        boolean coincideTexto = criterioTexto.isEmpty() || r.getIdentificacion().toLowerCase().contains(criterioTexto);
+                        return coincideCombo && coincideTexto;
+                    })
+                    .collect(Collectors.toList());
 
-           TV_Historico.setItems(FXCollections.observableArrayList(resultados));
-       } catch (Exception e) {
-           mostrarAlerta("Error", "Error al buscar receta: " + e.getMessage(), Alert.AlertType.ERROR);
-       }
+            TV_Historico.setItems(FXCollections.observableArrayList(resultados));
+        } catch (Exception e) {
+            mostrarAlerta("Error", "Error al buscar receta: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     @FXML
@@ -1225,6 +1587,36 @@ public class GestionMedicosController implements Initializable {
         } catch (IOException e) {
             mostrarAlerta("Error", "No se pudo cargar la receta: " + e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    public void cargarHistoricoAsync() {
+        progressHistorico.setVisible(true);
+        Async.run(
+                () -> {
+                    try {
+                        return recetaLogica.findAll();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                recetas -> {
+                    listaHistoricoRecetas.setAll(recetas);
+                    List<String> ids = recetas.stream()
+                            .map(Receta::getIdentificacion)
+                            .distinct()
+                            .collect(Collectors.toList());
+                    CB_Receta.setItems(FXCollections.observableArrayList(ids));
+                    progressHistorico.setVisible(false);
+                },
+                ex -> {
+                    progressHistorico.setVisible(false);
+                    Alert a = new Alert(Alert.AlertType.ERROR);
+                    a.setTitle("Error al cargar el historico de recetas");
+                    a.setHeaderText(null);
+                    a.setContentText(ex.getMessage());
+                    a.showAndWait();
+                }
+        );
     }
 
     private void refrescarTablaHistorico() {
@@ -1268,14 +1660,14 @@ public class GestionMedicosController implements Initializable {
     }
 
     @FXML
-    private void guardarDespacho(){
+    private void guardarDespacho() {
         String estado = CB_NuevoEstadoDespacho.getValue();
         Receta seleccionada = TV_Despacho.getSelectionModel().getSelectedItem();
         if (seleccionada == null) {
             mostrarAlerta("Error", "Seleccione una receta.", Alert.AlertType.WARNING);
             return;
         }
-        try{
+        try {
             seleccionada.setEstado(estado);
             recetaLogica.update(seleccionada);
             listaDespachoRecetas.setAll(recetaLogica.findAll());
@@ -1286,5 +1678,36 @@ public class GestionMedicosController implements Initializable {
         } catch (Exception e) {
             mostrarAlerta("Error", e.getMessage(), Alert.AlertType.ERROR);
         }
+    }
+
+    public void cargarDespachoAsync() {
+        progressDespacho.setVisible(true);
+        Async.run(
+                () -> {
+                    try {
+                        return recetaLogica.findAll();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                recetas -> {
+                    listaDespachoRecetas.setAll(recetas);
+                    TV_Despacho.setItems(listaDespachoRecetas);
+                    List<String> ids = recetas.stream()
+                            .map(Receta::getIdentificacion)
+                            .distinct()
+                            .collect(Collectors.toList());
+                    CB_RecetaDespacho.setItems(FXCollections.observableArrayList(ids));
+                    progressDespacho.setVisible(false);
+                },
+                ex -> {
+                    progressDespacho.setVisible(false);
+                    Alert a = new Alert(Alert.AlertType.ERROR);
+                    a.setTitle("Error al cargar despacho");
+                    a.setHeaderText(null);
+                    a.setContentText(ex.getMessage());
+                    a.showAndWait();
+                }
+        );
     }
 }

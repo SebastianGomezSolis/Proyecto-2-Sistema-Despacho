@@ -46,7 +46,7 @@ public class MedicamentoDatos {
     }
 
     public Medicamento findByCodigo(String codigo) throws SQLException {
-        String sql = "SELECT * FROM medico WHERE codigo = ?";
+        String sql = "SELECT * FROM medicamento WHERE codigo = ?";
         try (Connection cn = DataBase.getConnection();
              PreparedStatement ps = cn.prepareStatement(sql)) {
             ps.setString(1, codigo);

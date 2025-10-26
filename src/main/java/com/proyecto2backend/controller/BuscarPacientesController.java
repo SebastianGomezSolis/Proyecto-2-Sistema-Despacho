@@ -20,9 +20,11 @@ public class BuscarPacientesController {
     @FXML private TableColumn<Paciente, String> colNombre;
     @FXML private TableColumn<Paciente, String> colTelefono;
     @FXML private TableColumn<Paciente, String> colFechaNacimiento;
+    @FXML private ProgressIndicator progress;
+    @FXML private Button BTT_AceptarPacientes;
 
     private final ObservableList<Paciente> listaObservable = FXCollections.observableArrayList();
-    private PacienteLogica pacienteLogica;
+    private PacienteLogica pacienteLogica = new PacienteLogica();
     private Paciente pacienteSeleccionado;
 
     public Paciente getPacienteSeleccionado() {
@@ -32,7 +34,6 @@ public class BuscarPacientesController {
     @FXML
     public void initialize() {
         try {
-            pacienteLogica = new PacienteLogica();
 
             CB_Nombre.getItems().addAll("ID", "Nombre");
             CB_Nombre.getSelectionModel().select("Nombre");
@@ -45,7 +46,7 @@ public class BuscarPacientesController {
             );
 
             TV_Pacientes.setItems(listaObservable);
-            cargarPacientes();
+            cargarPacientesAsync();
 
             TXF_Nombre.textProperty().addListener((obs, oldVal, newVal) -> filtrar());
         } catch (Exception e) {
@@ -53,12 +54,29 @@ public class BuscarPacientesController {
         }
     }
 
-    private void cargarPacientes() {
-        try {
-            listaObservable.setAll(pacienteLogica.findAll());
-        } catch (Exception e) {
-            Logger.getLogger(BuscarPacientesController.class.getName()).log(Level.SEVERE, null, e);
-        }
+    private void cargarPacientesAsync() {
+        progress.setVisible(true);
+        Async.run(
+                () -> {
+                    try {
+                        return pacienteLogica.findAll();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                lista -> {
+                    listaObservable.setAll(lista);
+                    progress.setVisible(false);
+                },
+                ex -> {
+                    progress.setVisible(false);
+                    Alert a = new Alert(Alert.AlertType.ERROR);
+                    a.setTitle("Error al cargar los pacientes");
+                    a.setHeaderText(null);
+                    a.setContentText(ex.getMessage());
+                    a.showAndWait();
+                }
+        );
     }
 
     private void filtrar() {
@@ -66,7 +84,7 @@ public class BuscarPacientesController {
             String texto = TXF_Nombre.getText().trim();
 
             if (texto.isEmpty()) {
-                cargarPacientes();
+                cargarPacientesAsync();
                 return;
             }
 

@@ -8,6 +8,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -23,10 +24,10 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<Pane prefHeight="550.0" prefWidth="1121.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.proyecto2backend.controller.GestionMedicosController">
+<Pane prefHeight="549.0" prefWidth="897.0" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.proyecto2backend.controller.GestionMedicosController">
     <children>
         <!-- Fondo -->
-        <ImageView fitHeight="550.0" fitWidth="1141.0" layoutX="-14.0" pickOnBounds="true" preserveRatio="false">
+        <ImageView fitHeight="550.0" fitWidth="912.0" layoutX="-14.0" pickOnBounds="true" preserveRatio="false">
             <image>
                 <Image url="@../images/FondoMedico.png" />
             </image>
@@ -195,6 +196,7 @@
                                     <TableColumn fx:id="colEspecialidadMedico" prefWidth="320.0" text="Especialidad" />
                                 </columns>
                             </TableView>
+                     <ProgressIndicator fx:id="progressMedicos" layoutX="416.0" layoutY="206.0" prefHeight="25.0" prefWidth="21.0" visible="false" />
                         </AnchorPane>
                     </content>
                 </Tab>
@@ -320,6 +322,7 @@
                               <TableColumn fx:id="colNombreFarmaceutas" prefWidth="411.0" text="Nombre" />
                            </columns>
                         </TableView>
+                        <ProgressIndicator fx:id="progressFarmaceutas" layoutX="416.0" layoutY="206.0" prefHeight="25.0" prefWidth="21.0" visible="false" />
                      </children>
                   </AnchorPane>
               </content>
@@ -475,6 +478,7 @@
                            <TableColumn fx:id="colFechaNacimientoPaciente" prefWidth="219.0" text="Fecha de Nacimiento" />
                         </columns>
                      </TableView>
+                     <ProgressIndicator fx:id="progressPacientes" layoutX="417.0" layoutY="206.0" prefHeight="25.0" prefWidth="21.0" visible="false" />
                         </AnchorPane>
                     </content>
                 </Tab>
@@ -616,6 +620,7 @@
                               <TableColumn fx:id="colDescripcionMedicamento" prefWidth="380.0" text="Descripcion" />
                            </columns>
                         </TableView>
+                        <ProgressIndicator fx:id="progressMedicamentos" layoutX="417.0" layoutY="206.0" prefHeight="25.0" prefWidth="21.0" visible="false" />
                      </children>
                         </AnchorPane>
                     </content>
@@ -706,6 +711,7 @@
                                     <Font name="Calibri Bold" size="14.0" />
                                  </font>
                               </Label>
+                              <ProgressIndicator fx:id="progressPrescripcion" layoutX="409.0" layoutY="98.0" prefHeight="25.0" prefWidth="21.0" visible="false" />
                            </children>
                         </Pane>
                         <Pane layoutX="7.0" layoutY="333.0" prefHeight="88.0" prefWidth="797.0">
@@ -870,6 +876,7 @@
                               <Image url="@../images/limpiar.png" />
                            </image>
                         </ImageView>
+                        <ProgressIndicator fx:id="progressDespacho" layoutX="417.0" layoutY="77.0" prefHeight="25.0" prefWidth="21.0" visible="false" />
                      </children>
                   </AnchorPane>
               </content>
@@ -994,6 +1001,7 @@
                               <Image url="@../images/reporte.png" />
                            </image>
                         </ImageView>
+                        <ProgressIndicator fx:id="progressHistorico" layoutX="402.0" layoutY="70.0" prefHeight="25.0" prefWidth="21.0" visible="false" />
                      </children></AnchorPane>
               </content>
                <graphic>
@@ -1089,51 +1097,14 @@
             </Tab>
             </tabs>
         </TabPane>
-      <Button fx:id="btnVolver" layoutX="777.0" layoutY="31.0" mnemonicParsing="false" onAction="#volver" prefHeight="25.0" prefWidth="95.0" style="-fx-background-color: #756aff;" text="Cerrar Sesion" textFill="WHITE">
+      <Button fx:id="btnVolver" layoutX="777.0" layoutY="25.0" mnemonicParsing="false" onAction="#volver" prefHeight="25.0" prefWidth="95.0" style="-fx-background-color: #756aff;" text="Cerrar Sesion" textFill="WHITE">
          <font>
             <Font name="System Bold" size="12.0" />
          </font></Button>
-
-        <!-- Reemplaza esta sección en tu FXML (líneas 869-880 aproximadamente) -->
-        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="333.0" layoutX="895.0" layoutY="99.0" stroke="WHITE" strokeType="INSIDE" width="200.0" />
-        <Text fill="#290382" layoutX="949.0" layoutY="133.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Usuarios">
-            <font>
-                <Font name="System Bold" size="23.0" />
-            </font>
-        </Text>
-
-        <Button fx:id="btnEnviarMensaje" layoutX="921.0" layoutY="156.0" prefHeight="22.0" prefWidth="57.0" style="-fx-background-color: #756aff;" text="Enviar" textFill="WHITE">
-            <effect>
-                <DropShadow blurType="ONE_PASS_BOX">
-                    <color>
-                        <Color red="1.0" green="1.0" blue="1.0" />
-                    </color>
-                </DropShadow>
-            </effect>
-            <font>
-                <Font name="Calibri Bold" size="12.0" />
-            </font>
-        </Button>
-
-        <Button fx:id="btnRecibirMensaje" layoutX="1005.0" layoutY="156.0" prefHeight="22.0" prefWidth="57.0" style="-fx-background-color: #756aff;" text="Recibir" textFill="WHITE">
-            <effect>
-                <DropShadow blurType="ONE_PASS_BOX">
-                    <color>
-                        <Color red="1.0" green="1.0" blue="1.0" />
-                    </color>
-                </DropShadow>
-            </effect>
-            <font>
-                <Font name="Calibri Bold" size="12.0" />
-            </font>
-        </Button>
-
-        <!-- Tabla de usuarios con checkboxes -->
-        <TableView fx:id="tablaUsuarios" layoutX="915.0" layoutY="196.0" prefHeight="214.0" prefWidth="161.0" style="-fx-border-color: #6257e3;">
-            <columns>
-                <TableColumn fx:id="colIdUsuario" prefWidth="75.0" text="ID" />
-                <TableColumn fx:id="colSeleccionUsuario" prefWidth="85.0" text="Mensajes" />
-            </columns>
-        </TableView>
+      <Button fx:id="btnChat" layoutX="27.0" layoutY="25.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="73.0" style="-fx-background-color: #756aff;" text="Chat" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+      </Button>
     </children>
 </Pane>
