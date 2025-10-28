@@ -1710,4 +1710,22 @@ public class GestionMedicosController implements Initializable {
                 }
         );
     }
+
+    @FXML
+    public void abrirChat() {
+        try {
+            var loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com.proyecto2backend/view/Chat.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setTitle("Chat");
+            stage.setScene(new Scene(root));
+            stage.initOwner(progressHistorico.getScene().getWindow());
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Aqui podriamos poner un alert con un mensaje bonito :)
+
+        }
+    }
 }
