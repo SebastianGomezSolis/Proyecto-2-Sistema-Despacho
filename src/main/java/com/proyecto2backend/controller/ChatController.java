@@ -41,7 +41,7 @@ public class ChatController {
         // Cambio de modo actualiza etiqueta destino
         tgModo.selectedToggleProperty().addListener((obs, old, t) -> {
             if (rbGeneral.isSelected()) {
-                lblDestino.setText("(global)");
+                lblDestino.setText("(General)");
             } else {
                 String sel = listUsuarios.getSelectionModel().getSelectedItem();
                 lblDestino.setText(sel != null ? sel : "(Elige a un usuario conectado)");
@@ -103,7 +103,6 @@ public class ChatController {
         Platform.runLater(() -> {
             String yo = txtNombre.getText() == null ? "" : txtNombre.getText().trim();
             listUsuarios.getItems().setAll(usuarios);
-            // Evita auto-seleccionarte como destino
             listUsuarios.getItems().removeIf(u -> u.equalsIgnoreCase(yo));
         });
     }
