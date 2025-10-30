@@ -15,8 +15,7 @@ public class UserChat {
     private Consumer<List<String>> onUsers = list -> {};
 
     // Nuevo: permite pasar callback de mensajes y de lista de usuarios
-    public void conectar(String host, int port, String nombre,
-                         Consumer<String> onMsg, Consumer<List<String>> onUsers) throws IOException {
+    public void conectar(String host, int port, String nombre, Consumer<String> onMsg, Consumer<List<String>> onUsers) throws IOException {
 
         this.onMsg = onMsg != null ? onMsg : this.onMsg;
         this.onUsers = onUsers != null ? onUsers : this.onUsers;

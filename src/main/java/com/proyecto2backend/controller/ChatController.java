@@ -59,7 +59,7 @@ public class ChatController {
         if (nombre.isEmpty()) nombre = "anonimo";
 
         try {
-            chat.conectar("127.0.0.1", 6000, nombre,
+            chat.conectar("localhost", 6000, nombre,
                     this::onIncomingLine,
                     this::onUsersList
             );
