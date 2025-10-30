@@ -44,3 +44,17 @@ oct 29, 2025 9:20:05 P. M. com.proyecto2backend.servicios.HospitalChatServer st
 INFO: Conexion aceptada desde: /127.0.0.1:57330
 oct 29, 2025 9:20:05 P. M. com.proyecto2backend.servicios.HospitalChatServer register
 INFO: Usuario registrado: Samuel
+oct 29, 2025 9:36:06 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Iniciando el servidor en el puerto: 6000
+oct 29, 2025 9:37:35 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptada desde: /127.0.0.1:63581
+oct 29, 2025 9:37:35 P. M. com.proyecto2backend.servicios.HospitalChatServer register
+INFO: Usuario registrado: Sebas
+oct 29, 2025 9:37:39 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptada desde: /127.0.0.1:63583
+oct 29, 2025 9:37:39 P. M. com.proyecto2backend.servicios.HospitalChatServer register
+INFO: Usuario registrado: Fabian
+oct 29, 2025 9:37:45 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptada desde: /127.0.0.1:63584
+oct 29, 2025 9:37:45 P. M. com.proyecto2backend.servicios.HospitalChatServer register
+INFO: Usuario registrado: Camila

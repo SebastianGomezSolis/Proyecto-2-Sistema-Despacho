@@ -344,16 +344,23 @@ public class GestionMedicosController implements Initializable {
 
     public void volver() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com.proyecto2backend/view/Login.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/proyecto2backend/view/Login.fxml"));
             Parent root = loader.load();
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
             stage.setTitle("Login");
             stage.show();
 
+            // Liberar la sesión activa antes de cerrar
+            if (Sesion.getUsuarioActual() != null) {
+                String codigo = Sesion.getUsuarioActual().getIdentificacion();
+                com.proyecto2backend.servicios.SesionManagerService.cerrarSesion(codigo);
+            }
+
             // Cerrar la ventana actual
             Stage ventanaActual = (Stage) tabPane.getScene().getWindow();
             ventanaActual.close();
+
         } catch (IOException e) {
             mostrarAlerta("Error", "No se pudo volver al menú de login: " + e.getMessage(), Alert.AlertType.ERROR);
         }

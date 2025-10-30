@@ -49,7 +49,7 @@ public class UserHandler extends Thread {
                 line = line.trim();
                 if (line.isEmpty()) continue;
 
-                // PRIVADO: @destino mensaje
+                // PRIVADO
                 if (line.startsWith("@")) {
                     int space = line.indexOf(' ');
                     if (space > 1) {
@@ -72,7 +72,7 @@ public class UserHandler extends Thread {
                     continue;
                 }
 
-                // Mensaje global
+                // GENERAL
                 server.broadcast(assigned + ": " + line);
             }
         } catch (IOException e) {
