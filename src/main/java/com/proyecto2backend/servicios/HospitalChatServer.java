@@ -51,7 +51,8 @@ public class HospitalChatServer {
         handler.setNombre(unique);
         usersByName.put(unique, handler);
         broadcast("[SISTEMA] " + unique + " se unió al chat");
-        sendUsersList(); // difundir lista de usuarios a todos
+        sendUsersList(); // Enviar la lista a todos los usuarios
+        LOGGER.info("Usuario registrado: " + unique);
         return unique;
     }
 
@@ -85,7 +86,7 @@ public class HospitalChatServer {
         UserHandler target = usersByName.get(to);
         if (target != null) {
             target.send("[PRIVADO] " + from + ": " + message);
-            // Confirmación al emisor (útil en UI)
+            // Confirmación al emisor
             UserHandler src = usersByName.get(from);
             if (src != null && src != target) {
                 src.send("[PRIVADO → " + to + "] " + message);
