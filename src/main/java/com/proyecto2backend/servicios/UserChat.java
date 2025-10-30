@@ -11,13 +11,12 @@ public class UserChat {
     private PrintWriter out;
     private BufferedReader in;
 
-    // Nuevo: permite pasar callback de mensajes y de lista de usuarios
     public void conectar(String host, int port, String nombre, Consumer<String> onMsg, Consumer<List<String>> onUsers) throws IOException {
         socket = new Socket(host, port);
         out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
         in  = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 
-        // Hilo escucha
+        // Hilo escucha (nombrado solo para debug)
         new Thread(() -> {
             try {
                 String line;
@@ -27,9 +26,7 @@ public class UserChat {
                         if (data.startsWith("]")) data = data.substring(1).trim();
                         if (data.startsWith(":")) data = data.substring(1).trim();
                         data = data.replaceFirst("^\\s+", "");
-                        List<String> lista = data.isEmpty()
-                                ? List.of()
-                                : Arrays.asList(data.split("\\s*,\\s*"));
+                        List<String> lista = data.isEmpty() ? List.of() : Arrays.asList(data.split("\\s*,\\s*"));
                         onUsers.accept(lista);
                     } else {
                         onMsg.accept(line);
