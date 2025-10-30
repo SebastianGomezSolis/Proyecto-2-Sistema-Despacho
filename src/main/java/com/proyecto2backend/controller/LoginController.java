@@ -2,7 +2,6 @@ package com.proyecto2backend.controller;
 
 import com.proyecto2backend.logic.*;
 import com.proyecto2backend.model.*;
-import com.proyecto2backend.servicios.SesionManagerService;
 import com.proyecto2backend.utilitarios.Sesion;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -73,19 +72,6 @@ public class LoginController implements Initializable {
 
                 Usuario usuarioAutenticado = validarCredenciales(usuario, password);
                 if (usuarioAutenticado != null) {
-                    String codigo = usuarioAutenticado.getIdentificacion();
-
-                    // Impide doble inicio de sesión
-                    if (!SesionManagerService.registrarSesion(codigo)) {
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("Sesión activa");
-                        alert.setHeaderText(null);
-                        alert.setContentText("El usuario " + codigo + " ya tiene una sesión activa en otra aplicación.");
-                        alert.showAndWait();
-                        return; // Detiene el inicio de sesión
-                    }
-
-                    // Continúa si pasa la verificación
                     List<String> permisos = asignarPermisosPorPrefijo(usuarioAutenticado.getIdentificacion());
                     Sesion.iniciarSesion(usuarioAutenticado, permisos);
                     try {
@@ -97,7 +83,7 @@ public class LoginController implements Initializable {
 
                         Stage stage = (Stage) txtUsuario.getScene().getWindow();
                         stage.setScene(new Scene(root));
-                        stage.getIcons().add(new Image(getClass().getResourceAsStream("/com/proyecto2backend/images/hospital.png")));
+                        stage.getIcons().add(new Image(getClass().getResourceAsStream("/com.proyecto2backend/images/hospital.png")));
                         stage.setTitle("Menú principal");
 
                     } catch (Exception e) {
