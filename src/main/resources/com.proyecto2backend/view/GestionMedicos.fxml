@@ -145,7 +145,7 @@
                            </ImageView>
                                 </children>
                             </Pane>
-            
+
                             <!-- Sección Búsqueda -->
                             <Pane layoutX="12.0" layoutY="122.0" prefHeight="82.0" prefWidth="828.0">
                                 <children>
@@ -182,7 +182,7 @@
                            </ImageView>
                                 </children>
                             </Pane>
-            
+
                             <!-- Tabla Listado -->
                             <Text fill="#290382" layoutX="16.0" layoutY="223.0" text="Listado">
                                 <font>

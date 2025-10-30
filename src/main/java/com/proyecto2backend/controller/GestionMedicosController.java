@@ -1362,8 +1362,8 @@ public class GestionMedicosController implements Initializable {
                     refrescarTablaPrescripcion();
                     cargarGraficos();
                     refrescarTablaHistorico();
-                    // Si tu pestaña de despacho depende de todas las recetas:
-                    // cargarDespachoAsync();
+                    dtpFechaRetiro.setValue(LocalDate.now());
+                    LBL_Nombre.setText("Nombre");
                 },
                 ex -> {
                     progressPrescripcion.setVisible(false);
@@ -1724,8 +1724,6 @@ public class GestionMedicosController implements Initializable {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            // Aqui podriamos poner un alert con un mensaje bonito :)
-
         }
     }
 }

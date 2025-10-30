@@ -8,3 +8,11 @@ oct 27, 2025 9:59:57 P. M. com.proyecto2backend.servicios.HospitalChatServer st
 INFO: Conexion aceptado desde: /127.0.0.1:56226
 oct 27, 2025 10:00:09 P. M. com.proyecto2backend.servicios.HospitalChatServer start
 INFO: Conexion aceptado desde: /127.0.0.1:56229
+oct 28, 2025 8:02:16 A. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Iniciando el servidor en el puerto: 6000
+oct 28, 2025 8:03:21 A. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptado desde: /127.0.0.1:62134
+oct 28, 2025 8:03:24 A. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptado desde: /127.0.0.1:62135
+oct 28, 2025 8:03:56 A. M. com.proyecto2backend.servicios.HospitalChatServer remove
+INFO: Cliente eliminado de la conexion: Thread-1

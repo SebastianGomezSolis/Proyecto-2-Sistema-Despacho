@@ -11,7 +11,7 @@ public class UserHandler extends Thread {
     private PrintWriter out;
     private BufferedReader in;
 
-    private String name = "anonimo";
+    private String nombre = "anonimo";
     private String role = "usuario";
 
     private static final Logger LOGGER = Logger.getLogger("HospitalChatServer");
@@ -20,6 +20,10 @@ public class UserHandler extends Thread {
         this.socket = socket;
         this.server = server;
     }
+
+    public void setNombre(String n) { this.nombre = n; }
+
+    public String getNombre() { return nombre; }
 
     public void send(String msg) {
         if (out != null) {
@@ -33,24 +37,47 @@ public class UserHandler extends Thread {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
 
-            out.println("Bienvenido al chat del hospital. De preferencia , escribe tu nombre para poder identificarte.");
+            out.println("Bienvenido al chat del hospital. Escribe tu nombre (una sola línea).");
 
-            // Comienza a leer las entradas del cliente
-            String line = in.readLine();
-            if (line != null && !line.isBlank()) {
-                name = line.trim();
-                // Aqui vamos a necesitar un metodo en el que el servidor procese el mensaje
-                server.broadcast("[SISTEMA] " + name + " se unio al chat");
-            }
+            // Primer mensaje: nombre propuesto (o vacío)
+            String first = in.readLine();
+            String assigned = server.register(this, first);
 
-            // Procesamos el resto de los mensajes
+            // Loop de mensajes
+            String line;
             while ((line = in.readLine()) != null) {
-                server.broadcast(name + ": " + line);
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                // PRIVADO: @destino mensaje
+                if (line.startsWith("@")) {
+                    int space = line.indexOf(' ');
+                    if (space > 1) {
+                        String destino = line.substring(1, space).trim();
+                        String msg = line.substring(space + 1).trim();
+                        if (!msg.isEmpty()) {
+                            server.sendPrivate(assigned, destino, msg);
+                        } else {
+                            send("[SISTEMA] Mensaje vacío.");
+                        }
+                    } else {
+                        send("[SISTEMA] Formato: @usuario mensaje");
+                    }
+                    continue;
+                }
+
+                // Comando opcional: /usuarios → fuerza refresco (debug)
+                if (line.equalsIgnoreCase("/usuarios")) {
+                    server.sendUsersList();
+                    continue;
+                }
+
+                // Mensaje global
+                server.broadcast(assigned + ": " + line);
             }
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Conexion finalizada: " + e);
-        }
-        finally {
+        } finally {
             try {
                 socket.close();
             } catch (IOException ex) {
