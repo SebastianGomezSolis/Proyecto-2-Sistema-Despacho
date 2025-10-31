@@ -17,7 +17,7 @@ public class ChatController {
     @FXML private TextField txtInput;
     @FXML private Button btnEnviar;
 
-    @FXML private ListView<String> listUsuarios;
+    @FXML private ListView<String> listaUsuarios;
     @FXML private RadioButton rbGeneral;
     @FXML private RadioButton rbPrivado;
     @FXML private ToggleGroup tgModo;
@@ -28,11 +28,11 @@ public class ChatController {
 
     @FXML
     public void initialize() {
-        // Destino por defecto
+        // Label por defecto
         lblDestino.setText("(General)");
 
-        // Si seleccionas un usuario y estás en modo Privado, actualiza etiqueta
-        listUsuarios.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+        // Si selecciona un usuario y esta en modo Privado, actualiza etiqueta
+        listaUsuarios.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
             if (rbPrivado.isSelected()) {
                 lblDestino.setText(sel != null ? sel : "(Elige a un usuario conectado)");
             }
@@ -43,30 +43,23 @@ public class ChatController {
             if (rbGeneral.isSelected()) {
                 lblDestino.setText("(General)");
             } else {
-                String sel = listUsuarios.getSelectionModel().getSelectedItem();
+                String sel = listaUsuarios.getSelectionModel().getSelectedItem();
                 lblDestino.setText(sel != null ? sel : "(Elige a un usuario conectado)");
             }
         });
 
-        // Enter envía
         txtInput.setOnAction(e -> onSend());
     }
 
     @FXML
     public void onConnect() {
         if (conectado) return;
-        String nombre = txtNombre.getText() == null ? "" : txtNombre.getText().trim();
-        if (nombre.isEmpty()) nombre = "anonimo";
 
         try {
-            chat.conectar("localhost", 6000, nombre,
-                    this::onIncomingLine,
-                    this::onUsersList
-            );
+            chat.conectar("localhost", 6000, txtNombre.getText(), this::onIncomingLine, this::onUsersList);
             conectado = true;
             btnConectar.setDisable(true);
             txtNombre.setDisable(true);
-            append("[SISTEMA] Conectado como: " + nombre);
         } catch (IOException e) {
             append("[SISTEMA] No se pudo conectar: " + e.getMessage());
         }
@@ -82,7 +75,7 @@ public class ChatController {
         if (msg == null || msg.isBlank()) return;
 
         if (rbPrivado.isSelected()) {
-            String destino = listUsuarios.getSelectionModel().getSelectedItem();
+            String destino = listaUsuarios.getSelectionModel().getSelectedItem();
             if (destino == null || destino.isBlank()) {
                 append("[SISTEMA] Elige un usuario para enviar un mensaje privado.");
                 return;
@@ -102,8 +95,8 @@ public class ChatController {
     private void onUsersList(List<String> usuarios) {
         Platform.runLater(() -> {
             String yo = txtNombre.getText() == null ? "" : txtNombre.getText().trim();
-            listUsuarios.getItems().setAll(usuarios);
-            listUsuarios.getItems().removeIf(u -> u.equalsIgnoreCase(yo));
+            listaUsuarios.getItems().setAll(usuarios);
+            listaUsuarios.getItems().removeIf(u -> u.equalsIgnoreCase(yo));
         });
     }
 

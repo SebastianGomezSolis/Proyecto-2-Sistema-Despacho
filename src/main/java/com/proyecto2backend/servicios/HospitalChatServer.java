@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.*;
 
 public class HospitalChatServer {
     private final int port;
     private final Set<UserHandler> users = Collections.synchronizedSet(new HashSet<>());
-    private final Map<String, UserHandler> usersByName = new ConcurrentHashMap<>();
     private static final Logger LOGGER = Logger.getLogger(HospitalChatServer.class.getName());
 
     public HospitalChatServer(int port) {
@@ -47,9 +45,9 @@ public class HospitalChatServer {
 
     // Registra un usuario con nombre único. Devuelve el nombre asignado
     public String register(UserHandler handler, String proposed) {
-        String unique = ensureUniqueName(proposed == null || proposed.isBlank() ? "anonimo" : proposed.trim());
+        String base = (proposed == null || proposed.isBlank()) ? "anonimo" : proposed.trim();
+        String unique = ensureUniqueName(base);
         handler.setNombre(unique);
-        usersByName.put(unique, handler);
         broadcast("[SISTEMA] " + unique + " se unió al chat");
         sendUsersList(); // Enviar la lista a todos los usuarios
         LOGGER.info("Usuario registrado: " + unique);
@@ -57,16 +55,30 @@ public class HospitalChatServer {
     }
 
     private String ensureUniqueName(String base) {
-        if (!usersByName.containsKey(base)) return base;
-        int i = 2;
-        while (usersByName.containsKey(base + "(" + i + ")")) i++;
-        return base + "(" + i + ")";
+        synchronized (users) {
+            boolean taken = true;
+            String candidate = base;
+            int i = 2;
+            while (taken) {
+                taken = false;
+                for (UserHandler u : users) {
+                    if (candidate.equals(u.getNombre())) {
+                        taken = true;
+                        break;
+                    }
+                }
+                if (taken) {
+                    candidate = base + "(" + i + ")";
+                    i++;
+                }
+            }
+            return candidate;
+        }
     }
 
     public void remove(UserHandler userHandler) {
         users.remove(userHandler);
         if (userHandler.getNombre() != null) {
-            usersByName.remove(userHandler.getNombre());
             broadcast("[SISTEMA] " + userHandler.getNombre() + " salió del chat");
             sendUsersList();
         }
@@ -83,26 +95,41 @@ public class HospitalChatServer {
 
     // Metodo para poder enviar un mensaje privado, retorna true si se pudo enviar
     public boolean sendPrivate(String from, String to, String message) {
-        UserHandler target = usersByName.get(to);
-        if (target != null) {
-            target.send("[PRIVADO] " + from + ": " + message);
-            // Confirmación al emisor
-            UserHandler src = usersByName.get(from);
-            if (src != null && src != target) {
-                src.send("[PRIVADO → " + to + "] " + message);
+        UserHandler encontrado = null;
+        UserHandler user = null;
+
+        // Buscar emisor y destinatario por nombre recorriendo el Set
+        synchronized (this.users) {
+            for (UserHandler u : this.users) {
+                String nombre = u.getNombre();
+                if (nombre == null) continue;
+                if (nombre.equals(to)) encontrado = u;
+                if (nombre.equals(from)) user = u;
+            }
+        }
+
+        if (encontrado != null) {
+            encontrado.send("[PRIVADO] " + from + ": " + message);
+            if (user != null && user != encontrado) {
+                user.send("[PRIVADO a " + to + "] " + message);
             }
             return true;
         }
-        UserHandler src = usersByName.get(from);
-        if (src != null) {
-            src.send("[SISTEMA] Usuario '" + to + "' no encontrado.");
+        if (user != null) {
+            user.send("[SISTEMA] Usuario '" + to + "' no encontrado.");
         }
         return false;
     }
 
     // Muestra la lista de usuarios
     public void sendUsersList() {
-        String line = "[USERS] " + String.join(",", usersByName.keySet());
+        List<String> nombres = new ArrayList<>();
+        synchronized (users) {
+            for (UserHandler u : users) {
+                if (u.getNombre() != null) nombres.add(u.getNombre());
+            }
+        }
+        String line = "[USUARIOS] " + String.join(",", nombres);
         broadcast(line);
     }
 

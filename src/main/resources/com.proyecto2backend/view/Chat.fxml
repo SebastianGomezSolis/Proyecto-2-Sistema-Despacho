@@ -30,7 +30,7 @@
                 <Label style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: white;" text="👥 Usuarios" />
             </HBox>
 
-            <ListView fx:id="listUsuarios" style="-fx-background-radius: 0 0 12 12; -fx-padding: 6;" VBox.vgrow="ALWAYS" />
+            <ListView fx:id="listaUsuarios" style="-fx-background-radius: 0 0 12 12; -fx-padding: 6;" VBox.vgrow="ALWAYS" />
 
             <VBox spacing="6" style="-fx-padding: 10 12 12 12;">
                 <Label style="-fx-text-fill: #4c1d95; -fx-font-size: 11px;" text="Modo de envío" />

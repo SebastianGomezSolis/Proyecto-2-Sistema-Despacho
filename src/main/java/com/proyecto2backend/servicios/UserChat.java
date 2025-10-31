@@ -21,7 +21,7 @@ public class UserChat {
             try {
                 String line;
                 while ((line = in.readLine()) != null) {
-                    if (line.startsWith("[USERS]")) {
+                    if (line.startsWith("[USUARIOS]")) {
                         String data = line.substring(7).trim();
                         if (data.startsWith("]")) data = data.substring(1).trim();
                         if (data.startsWith(":")) data = data.substring(1).trim();

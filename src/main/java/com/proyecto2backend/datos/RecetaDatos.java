@@ -5,6 +5,7 @@ import com.proyecto2backend.model.Receta;
 import com.proyecto2backend.model.RecetaDetalle;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,19 +23,12 @@ public class RecetaDatos {
             PacienteDatos      pacDAO = new PacienteDatos();
             RecetaDetalleDatos detDAO = new RecetaDetalleDatos();
 
-            Map<Integer, Paciente>      pacCache = new HashMap<>();
-            Map<Integer, RecetaDetalle> detCache = new HashMap<>();
-
             while (rs.next()) {
                 int idPac = rs.getInt("pacienteId");
                 int idDet = rs.getInt("recetaDetalleId");
 
-                Paciente p = pacCache.computeIfAbsent(idPac, k -> {
-                    try { return pacDAO.findById(k); } catch (SQLException e) { throw new RuntimeException(e); }
-                });
-                RecetaDetalle d = detCache.computeIfAbsent(idDet, k -> {
-                    try { return detDAO.findById(k); } catch (SQLException e) { throw new RuntimeException(e); }
-                });
+                Paciente p = pacDAO.findById(idPac);
+                RecetaDetalle d = detDAO.findById(idDet);
 
                 Receta r = new Receta();
                 r.setId(rs.getInt("id"));
@@ -42,7 +36,7 @@ public class RecetaDatos {
                 r.setPaciente(p);
                 r.setFechaEntrega(rs.getDate("fechaEntrega").toLocalDate());
                 r.setEstado(rs.getString("estado"));
-                r.setMedicamento(d); // tu setter se llama en plural
+                r.setMedicamento(d);
 
                 list.add(r);
             }
@@ -75,7 +69,6 @@ public class RecetaDatos {
                 r.setFechaEntrega(rs.getDate("fechaEntrega").toLocalDate());
                 r.setEstado(rs.getString("estado"));
                 r.setMedicamento(d);
-
                 return r;
             }
         }
@@ -88,7 +81,7 @@ public class RecetaDatos {
 
             ps.setString(1, r.getIdentificacion());
             ps.setInt(2, r.getPaciente().getId());
-            ps.setDate(3, Date.valueOf(r.getFechaEntrega()));
+            ps.setDate(3, r.getFechaEntrega() == null ? null : Date.valueOf(r.getFechaEntrega()));
             ps.setInt(4, r.getMedicamento().getId());
             ps.setString(5, r.getEstado());
             ps.executeUpdate();
@@ -97,28 +90,22 @@ public class RecetaDatos {
                 if (keys.next()) r.setId(keys.getInt(1));
             }
 
+            // Autogenerar 'identificacion' si viene vacía
             if (r.getIdentificacion() == null || r.getIdentificacion().isBlank()) {
-
                 String SQL_NEXT = "SELECT COALESCE(MAX(CAST(SUBSTRING(identificacion, 4) AS UNSIGNED)), 0) + 1 FROM receta WHERE identificacion LIKE 'REC%'";
-
                 int next = 1;
                 try (PreparedStatement psn = cn.prepareStatement(SQL_NEXT);
                      ResultSet rs = psn.executeQuery()) {
                     if (rs.next()) next = rs.getInt(1);
                 }
-
                 String ident = "REC" + String.format("%03d", next);
-
-                try (PreparedStatement ps2 = cn.prepareStatement(
-                        "UPDATE receta SET identificacion=? WHERE id=?")) {
+                try (PreparedStatement ps2 = cn.prepareStatement("UPDATE receta SET identificacion=? WHERE id=?")) {
                     ps2.setString(1, ident);
                     ps2.setInt(2, r.getId());
                     ps2.executeUpdate();
                 }
-
                 r.setIdentificacion(ident);
             }
-
             return r;
         }
     }
@@ -130,13 +117,12 @@ public class RecetaDatos {
 
             ps.setString(1, r.getIdentificacion());
             ps.setInt(2, r.getPaciente().getId());
-            ps.setDate(3, Date.valueOf(r.getFechaEntrega()));
+            ps.setDate(3, r.getFechaEntrega() == null ? null : Date.valueOf(r.getFechaEntrega()));
             ps.setInt(4, r.getMedicamento().getId());
             ps.setString(5, r.getEstado());
             ps.setInt(6, r.getId());
 
-            if (ps.executeUpdate() > 0) return r;
-            return null;
+            return (ps.executeUpdate() > 0) ? r : null;
         }
     }
 
