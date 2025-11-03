@@ -16,17 +16,13 @@ public class UserChat {
         out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
         in  = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
 
-        // Hilo escucha (nombrado solo para debug)
         new Thread(() -> {
             try {
                 String line;
                 while ((line = in.readLine()) != null) {
-                    if (line.startsWith("[USUARIOS]")) {
-                        String data = line.substring(7).trim();
-                        if (data.startsWith("]")) data = data.substring(1).trim();
-                        if (data.startsWith(":")) data = data.substring(1).trim();
-                        data = data.replaceFirst("^\\s+", "");
-                        List<String> lista = data.isEmpty() ? List.of() : Arrays.asList(data.split("\\s*,\\s*"));
+                    if (line.startsWith("[USUARIOS] ")) {
+                        String data = line.substring(11); // quita "[USUARIOS] " completo
+                        List<String> lista = data.isBlank() ? List.of() : Arrays.asList(data.split("\\s*,\\s*"));
                         onUsers.accept(lista);
                     } else {
                         onMsg.accept(line);

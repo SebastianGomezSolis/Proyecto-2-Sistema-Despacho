@@ -31,9 +31,7 @@ public class PacienteLogica {
 
         // Unicidad por identificación
         if (existeIdentificacion(nuevo.getIdentificacion(), null)) {
-            throw new IllegalArgumentException(
-                    "Ya existe un paciente con la identificación: " + nuevo.getIdentificacion()
-            );
+            throw new IllegalArgumentException("Ya existe un paciente con la identificación: " + nuevo.getIdentificacion());
         }
 
         return store.insert(nuevo);

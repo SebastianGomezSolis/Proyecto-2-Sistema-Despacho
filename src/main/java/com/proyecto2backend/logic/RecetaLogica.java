@@ -33,10 +33,10 @@ public class RecetaLogica {
         if (p == null)
             throw new IllegalArgumentException("El paciente no existe (id=" + nueva.getPaciente().getId() + ").");
 
-        RecetaDetalle d = nueva.getMedicamento();
+        RecetaDetalle d = nueva.getDetalles();
         if (d.getId() == 0) {
             d = detStore.insert(d);
-            nueva.setMedicamento(d);
+            nueva.setDetalles(d);
         } else {
             if (detStore.findById(d.getId()) == null)
                 throw new IllegalArgumentException("El detalle de receta no existe (id=" + d.getId() + ").");
@@ -54,8 +54,8 @@ public class RecetaLogica {
 
         if (pacStore.findById(r.getPaciente().getId()) == null)
             throw new IllegalArgumentException("El paciente no existe (id=" + r.getPaciente().getId() + ").");
-        if (detStore.findById(r.getMedicamento().getId()) == null)
-            throw new IllegalArgumentException("El detalle de receta no existe (id=" + r.getMedicamento().getId() + ").");
+        if (detStore.findById(r.getDetalles().getId()) == null)
+            throw new IllegalArgumentException("El detalle de receta no existe (id=" + r.getDetalles().getId() + ").");
 
         return store.update(r);
     }
@@ -73,8 +73,8 @@ public class RecetaLogica {
 
     private void validarCampos(Receta r) {
         if (r.getPaciente() == null) throw new IllegalArgumentException("El paciente es obligatorio.");
-        if (r.getMedicamento() == null) throw new IllegalArgumentException("El detalle de receta es obligatorio.");
-        var d = r.getMedicamento();
+        if (r.getDetalles() == null) throw new IllegalArgumentException("El detalle de receta es obligatorio.");
+        var d = r.getDetalles();
         if (d.getMedicamento() == null) throw new IllegalArgumentException("Debe seleccionar un medicamento.");
         if (d.getCantidad() <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor a cero.");
         if (d.getDiasDuracion() <= 0) throw new IllegalArgumentException("Los días de duración deben ser mayores a cero.");

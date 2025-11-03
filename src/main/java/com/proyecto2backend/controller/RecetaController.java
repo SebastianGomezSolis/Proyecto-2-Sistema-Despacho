@@ -72,7 +72,7 @@ public class RecetaController {
                 detalle.setCantidad(spp_Cantidad.getValue());
                 detalle.setDiasDuracion(spp_duracion.getValue());
                 detalle.setIndicaciones(txt_IndicacionesMedicamentos.getText());
-                recetaActual.setMedicamento(detalle);
+                recetaActual.setDetalles(detalle);
             }
 
             Stage stage = (Stage) spp_Cantidad.getScene().getWindow();
@@ -106,8 +106,8 @@ public class RecetaController {
         this.modoEdicion = modoEdicion;
 
         //inicializamos lista si está vacía
-        if (recetaActual.getMedicamento() == null) {
-            recetaActual.setMedicamento(new RecetaDetalle());
+        if (recetaActual.getDetalles() == null) {
+            recetaActual.setDetalles(new RecetaDetalle());
         }
 
         // (modoEdicion = false)
@@ -118,7 +118,7 @@ public class RecetaController {
         }
 
         // mostrar el primer medicamento automáticamente
-        RecetaDetalle det = recetaActual.getMedicamento();
+        RecetaDetalle det = recetaActual.getDetalles();
         if (det != null) {
             spp_Cantidad.getValueFactory().setValue(det.getCantidad() > 0 ? det.getCantidad() : 1);
             spp_duracion.getValueFactory().setValue(det.getDiasDuracion() > 0 ? det.getDiasDuracion() : 1);

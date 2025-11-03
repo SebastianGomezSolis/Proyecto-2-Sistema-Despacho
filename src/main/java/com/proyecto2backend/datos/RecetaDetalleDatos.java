@@ -5,12 +5,9 @@ import com.proyecto2backend.model.RecetaDetalle;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class RecetaDetalleDatos {
-
     public List<RecetaDetalle> findAll() throws SQLException {
         String sql = "SELECT * FROM recetadetalle ORDER BY id";
         try (Connection cn = DataBase.getConnection();

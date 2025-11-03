@@ -38,7 +38,7 @@ public class Receta {
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
 
-    public RecetaDetalle getMedicamento() { return medicamentos; }
-    public void setMedicamento(RecetaDetalle medicamentos) { this.medicamentos = medicamentos; }
+    public RecetaDetalle getDetalles() { return medicamentos; }
+    public void setDetalles(RecetaDetalle medicamentos) { this.medicamentos = medicamentos; }
 
 }

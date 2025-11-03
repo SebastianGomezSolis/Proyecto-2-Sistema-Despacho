@@ -5,14 +5,10 @@ import com.proyecto2backend.model.Receta;
 import com.proyecto2backend.model.RecetaDetalle;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class RecetaDatos {
-
     public List<Receta> findAll() throws SQLException {
         String sql = "SELECT * FROM receta ORDER BY id";
         try (Connection cn = DataBase.getConnection();
@@ -20,7 +16,7 @@ public class RecetaDatos {
              ResultSet rs = ps.executeQuery()) {
 
             List<Receta> list = new ArrayList<>();
-            PacienteDatos      pacDAO = new PacienteDatos();
+            PacienteDatos pacDAO = new PacienteDatos();
             RecetaDetalleDatos detDAO = new RecetaDetalleDatos();
 
             while (rs.next()) {
@@ -36,7 +32,7 @@ public class RecetaDatos {
                 r.setPaciente(p);
                 r.setFechaEntrega(rs.getDate("fechaEntrega").toLocalDate());
                 r.setEstado(rs.getString("estado"));
-                r.setMedicamento(d);
+                r.setDetalles(d);
 
                 list.add(r);
             }
@@ -68,7 +64,7 @@ public class RecetaDatos {
                 r.setPaciente(p);
                 r.setFechaEntrega(rs.getDate("fechaEntrega").toLocalDate());
                 r.setEstado(rs.getString("estado"));
-                r.setMedicamento(d);
+                r.setDetalles(d);
                 return r;
             }
         }
@@ -82,7 +78,7 @@ public class RecetaDatos {
             ps.setString(1, r.getIdentificacion());
             ps.setInt(2, r.getPaciente().getId());
             ps.setDate(3, r.getFechaEntrega() == null ? null : Date.valueOf(r.getFechaEntrega()));
-            ps.setInt(4, r.getMedicamento().getId());
+            ps.setInt(4, r.getDetalles().getId());
             ps.setString(5, r.getEstado());
             ps.executeUpdate();
 
@@ -118,7 +114,7 @@ public class RecetaDatos {
             ps.setString(1, r.getIdentificacion());
             ps.setInt(2, r.getPaciente().getId());
             ps.setDate(3, r.getFechaEntrega() == null ? null : Date.valueOf(r.getFechaEntrega()));
-            ps.setInt(4, r.getMedicamento().getId());
+            ps.setInt(4, r.getDetalles().getId());
             ps.setString(5, r.getEstado());
             ps.setInt(6, r.getId());
 

@@ -34,7 +34,6 @@ public class BuscarPacientesController {
     @FXML
     public void initialize() {
         try {
-
             CB_Nombre.getItems().addAll("ID", "Nombre");
             CB_Nombre.getSelectionModel().select("Nombre");
 

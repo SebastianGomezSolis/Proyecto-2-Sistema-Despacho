@@ -3,7 +3,6 @@ package com.proyecto2backend.controller;
 import com.proyecto2backend.logic.*;
 import com.proyecto2backend.model.*;
 import com.proyecto2backend.utilitarios.Sesion;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -1260,7 +1259,7 @@ public class GestionMedicosController implements Initializable {
                 recetaActual.setPaciente(pacienteSeleccionado);
                 recetaActual.setFechaEntrega(LocalDate.now());
                 recetaActual.setEstado("Confeccionada");
-                recetaActual.setMedicamento(new RecetaDetalle());
+                recetaActual.setDetalles(new RecetaDetalle());
 
                 LBL_Nombre.setText(pacienteSeleccionado.getNombre());
                 refrescarTablaPrescripcion();
@@ -1284,7 +1283,7 @@ public class GestionMedicosController implements Initializable {
                 recetaActual.setPaciente(pacienteSeleccionado);
                 recetaActual.setFechaEntrega(LocalDate.now());
                 recetaActual.setEstado("Confeccionada");
-                recetaActual.setMedicamento(new RecetaDetalle());
+                recetaActual.setDetalles(new RecetaDetalle());
             }
 
 
@@ -1319,7 +1318,7 @@ public class GestionMedicosController implements Initializable {
     @FXML
     private void guardarReceta() {
         try {
-            if (recetaActual == null || recetaActual.getMedicamento() == null) {
+            if (recetaActual == null || recetaActual.getDetalles() == null) {
                 mostrarAlerta("Error", "No hay medicamentos en la receta.", Alert.AlertType.WARNING);
                 return;
             }
@@ -1391,7 +1390,7 @@ public class GestionMedicosController implements Initializable {
         confirmacion.showAndWait().ifPresent(r -> {
             if (r == ButtonType.OK && recetaActual != null) {
                 // Si tu Receta solo guarda UN RecetaDetalle:
-                recetaActual.setMedicamento(null);
+                recetaActual.setDetalles(null);
                 refrescarTablaPrescripcion();
             }
         });
@@ -1439,15 +1438,15 @@ public class GestionMedicosController implements Initializable {
         LBL_Nombre.setText("");
         dtpFechaRetiro.setValue(null);
         if (recetaActual != null) {
-            recetaActual.setMedicamento(null); // elimina el detalle, no lo dejes con medicamento=null
+            recetaActual.setDetalles(null); // elimina el detalle, no lo dejes con medicamento=null
         }
         refrescarTablaPrescripcion();
     }
 
     private void refrescarTablaPrescripcion() {
         tablaPrescripcion.getItems().clear();
-        if (recetaActual != null && recetaActual.getMedicamento() != null) {
-            tablaPrescripcion.getItems().add(recetaActual.getMedicamento());
+        if (recetaActual != null && recetaActual.getDetalles() != null) {
+            tablaPrescripcion.getItems().add(recetaActual.getDetalles());
         }
     }
 

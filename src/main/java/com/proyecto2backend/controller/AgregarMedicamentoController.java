@@ -106,7 +106,7 @@ public class AgregarMedicamentoController implements Initializable {
             recetaActual.setPaciente(pacienteSeleccionado);
             recetaActual.setFechaEntrega(LocalDate.now());
             recetaActual.setEstado("Confeccionada");
-            recetaActual.setMedicamento(new RecetaDetalle());
+            recetaActual.setDetalles(new RecetaDetalle());
         }
 
         aceptarMedicamentoAsync(seleccionado, recetaActual);

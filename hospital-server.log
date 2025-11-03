@@ -64,3 +64,33 @@ oct 29, 2025 9:54:40 P. M. com.proyecto2backend.servicios.HospitalChatServer st
 INFO: Iniciando el servidor en el puerto: 6000
 oct 29, 2025 9:56:02 P. M. com.proyecto2backend.servicios.HospitalChatServer start
 INFO: Iniciando el servidor en el puerto: 6000
+oct 30, 2025 8:31:07 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Iniciando el servidor en el puerto: 6000
+oct 30, 2025 8:32:01 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptada desde: /127.0.0.1:62877
+oct 30, 2025 8:32:01 P. M. com.proyecto2backend.servicios.HospitalChatServer register
+INFO: Usuario registrado: Sebas
+oct 30, 2025 8:32:16 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptada desde: /127.0.0.1:62880
+oct 30, 2025 8:32:16 P. M. com.proyecto2backend.servicios.HospitalChatServer register
+INFO: Usuario registrado: Jose
+oct 30, 2025 8:36:03 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Iniciando el servidor en el puerto: 6000
+oct 30, 2025 8:36:40 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptada desde: /127.0.0.1:58185
+oct 30, 2025 8:36:40 P. M. com.proyecto2backend.servicios.HospitalChatServer register
+INFO: Usuario registrado: Sebas
+oct 30, 2025 8:36:44 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptada desde: /127.0.0.1:58186
+oct 30, 2025 8:36:44 P. M. com.proyecto2backend.servicios.HospitalChatServer register
+INFO: Usuario registrado: Jose
+oct 31, 2025 3:51:36 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Iniciando el servidor en el puerto: 6000
+oct 31, 2025 3:52:35 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptada desde: /127.0.0.1:49305
+oct 31, 2025 3:52:35 P. M. com.proyecto2backend.servicios.HospitalChatServer register
+INFO: Usuario registrado: Sebas
+oct 31, 2025 3:52:40 P. M. com.proyecto2backend.servicios.HospitalChatServer start
+INFO: Conexion aceptada desde: /127.0.0.1:49306
+oct 31, 2025 3:52:40 P. M. com.proyecto2backend.servicios.HospitalChatServer register
+INFO: Usuario registrado: Gunter
