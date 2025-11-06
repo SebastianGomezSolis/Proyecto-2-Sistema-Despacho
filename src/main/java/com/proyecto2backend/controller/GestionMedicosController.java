@@ -1504,7 +1504,6 @@ public class GestionMedicosController implements Initializable {
 
     // DASHBOARD
     public void cargarGraficosAsync() {
-        progressDashBoard.setVisible(true); // si tienes un indicador visual
         Async.run(
                 () -> {
                     try {

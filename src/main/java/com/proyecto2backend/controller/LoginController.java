@@ -2,6 +2,7 @@ package com.proyecto2backend.controller;
 
 import com.proyecto2backend.logic.*;
 import com.proyecto2backend.model.*;
+import com.proyecto2backend.servicios.service.*;
 import com.proyecto2backend.utilitarios.Sesion;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -25,6 +26,10 @@ public class LoginController implements Initializable {
     @FXML Button btnCambiarClave;
     @FXML ProgressIndicator progressInicioSesion;
     @FXML ProgressIndicator progressCambiarClave;
+
+    private final MedicoSocketService medicoSocketService = new MedicoSocketService();
+    private final FarmaceutaSocketService farmaceutaSocketService = new FarmaceutaSocketService();
+    private final AdministradorSocketService administradorSocketService = new AdministradorSocketService();
 
     //Tabs
     @FXML private TabPane tabPane;
@@ -67,71 +72,100 @@ public class LoginController implements Initializable {
             }
 
             Platform.runLater(() -> {
-                progressInicioSesion.setVisible(false);
-                btnIniciarSesion.setVisible(true);
-
-                Usuario usuarioAutenticado = validarCredenciales(usuario, password);
-                if (usuarioAutenticado != null) {
-                    List<String> permisos = asignarPermisosPorPrefijo(usuarioAutenticado.getIdentificacion());
-                    Sesion.iniciarSesion(usuarioAutenticado, permisos);
-                    try {
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com.proyecto2backend/view/GestionMedicos.fxml"));
-                        Parent root = loader.load();
-
-                        GestionMedicosController controller = loader.getController();
-                        controller.configurarSegunPermisos();
-
-                        Stage stage = (Stage) txtUsuario.getScene().getWindow();
-                        stage.setScene(new Scene(root));
-                        stage.getIcons().add(new Image(getClass().getResourceAsStream("/com.proyecto2backend/images/hospital.png")));
-                        stage.setTitle("Menú principal");
-
-                    } catch (Exception e) {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("Error de sistema");
-                        alert.setHeaderText(e.getStackTrace()[0].getClassName());
-                        alert.setContentText("No fue posible iniciar sesión, debido a un error de sistema: " + e.getMessage());
-                        alert.showAndWait();
-                    }
-
-                } else {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Error de autenticación");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Usuario o contraseña incorrectos.");
-                    alert.showAndWait();
-                }
+                validarCredenciales(usuario, password);
             });
         }).start();
     }
 
-    private Usuario validarCredenciales(String id, String password) {
-        if (id == null || id.isBlank() || password == null || password.isBlank()) return null;
-
-        try {
-            if (id.startsWith("MED")) {
-                Medico medico = new MedicoLogica().findByIdentificacion(id);
-                if (medico != null && medico.getClave().equals(password)) {
-                    return medico;
-                }
-
-            } else if (id.startsWith("FAR")) {
-                Farmaceuta farma = new FarmaceutaLogica().findByIdentificacion(id);
-                if (farma != null && farma.getClave().equals(password)) {
-                    return farma;
-                }
-
-            } else if (id.startsWith("ADM")) {
-                Administrador admin = new AdministradorLogica().findByIdentificacion(id);
-                if (admin != null && admin.getClave().equals(password)) {
-                    return admin;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    private void validarCredenciales(String id, String password) {
+        if (id == null || id.isBlank() || password == null || password.isBlank()) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Datos requeridos");
+            alert.setHeaderText(null);
+            alert.setContentText("Debe ingresar usuario y contraseña.");
+            alert.showAndWait();
+            return;
         }
 
-        return null;
+        // Mostrar progress y ocultar botón
+        btnIniciarSesion.setVisible(false);
+        progressInicioSesion.setVisible(true);
+
+        Async.run(
+                () -> {
+                    try {
+                        if (id.startsWith("MED")) {
+                            Medico medico = medicoSocketService.findByIdentificacion(id);
+                            if (medico != null && medico.getClave().equals(password)) {
+                                return (Usuario) medico;
+                            }
+
+                        } else if (id.startsWith("FAR")) {
+                            Farmaceuta farma = farmaceutaSocketService.findByIdentificacion(id);
+                            if (farma != null && farma.getClave().equals(password)) {
+                                return (Usuario) farma;
+                            }
+
+                        } else if (id.startsWith("ADM")) {
+                            Administrador admin = administradorSocketService.findByIdentificacion(id);
+                            if (admin != null && admin.getClave().equals(password)) {
+                                return (Usuario) admin;
+                            }
+                        }
+                        return null;
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                usuarioAutenticado -> {
+                    // UI thread
+                    progressInicioSesion.setVisible(false);
+                    btnIniciarSesion.setVisible(true);
+
+                    if (usuarioAutenticado != null) {
+                        // mismos pasos que ya tenías en handleLogin
+                        List<String> permisos = asignarPermisosPorPrefijo(usuarioAutenticado.getIdentificacion());
+                        Sesion.iniciarSesion(usuarioAutenticado, permisos);
+
+                        try {
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com.proyecto2backend/view/GestionMedicos.fxml"));
+                            Parent root = loader.load();
+
+                            GestionMedicosController controller = loader.getController();
+                            controller.configurarSegunPermisos();
+
+                            Stage stage = (Stage) txtUsuario.getScene().getWindow();
+                            stage.setScene(new Scene(root));
+                            stage.getIcons().add(new Image(getClass().getResourceAsStream("/com.proyecto2backend/images/hospital.png")));
+                            stage.setTitle("Menú principal");
+
+                        } catch (Exception e) {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("Error de sistema");
+                            alert.setHeaderText(e.getStackTrace()[0].getClassName());
+                            alert.setContentText("No fue posible iniciar sesión, debido a un error de sistema: " + e.getMessage());
+                            alert.showAndWait();
+                        }
+
+                    } else {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error de autenticación");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Usuario o contraseña incorrectos.");
+                        alert.showAndWait();
+                    }
+                },
+                ex -> {
+                    progressInicioSesion.setVisible(false);
+                    btnIniciarSesion.setVisible(true);
+
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Error de autenticación");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Ocurrió un error al validar las credenciales: " + ex.getMessage());
+                    alert.showAndWait();
+                }
+        );
     }
 
     private List<String> asignarPermisosPorPrefijo(String usuario) {
@@ -250,19 +284,32 @@ public class LoginController implements Initializable {
     protected void salirLogin() { System.exit(0); }
 
     private void verificarAdministradorPorDefecto() {
-        try {
-            AdministradorLogica logica = new AdministradorLogica();
-            // Nuevo método que agregaste (igual que para médico/farma)
-            Administrador admin = logica.findByIdentificacion("ADM001");
+        Async.run(
+                () -> {
+                    try {
+                        Administrador admin = administradorSocketService.findByIdentificacion("ADM001");
 
-            if (admin == null) {
-                // Si tu constructor de Administrador es (int id, String identificacion, String clave):
-                // pasa id=0 o usa otro constructor sin id; el PK lo asigna MySQL.
-                Administrador nuevo = new Administrador(0, "ADM001", "ADM001");
-                logica.create(nuevo);
-            }
-        } catch (Exception e) {
-            System.err.println("Error al verificar administrador por defecto: " + e.getMessage());
-        }
+                        if (admin == null) {
+                            Administrador nuevo = new Administrador(0, "ADM001", "ADM001");
+                            administradorSocketService.create(nuevo);
+                            return Boolean.TRUE; // creado
+                        }
+                        return Boolean.FALSE;    // ya existía
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                creado -> {
+                    if (Boolean.TRUE.equals(creado)) {
+                        System.out.println("Administrador ADM001 creado por defecto.");
+                    } else {
+                        System.out.println("Administrador ADM001 ya existía.");
+                    }
+                },
+                ex -> {
+                    System.err.println("Error al verificar administrador por defecto: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+        );
     }
 }

@@ -10,11 +10,11 @@ module com.proyecto2backend {
     // Opens para JavaFX
     opens com.proyecto2backend to javafx.fxml;
     opens com.proyecto2backend.controller to javafx.fxml;
-    opens com.proyecto2backend.model to javafx.fxml;
+    opens com.proyecto2backend.model to javafx.fxml, com.google.gson;
     opens com.proyecto2backend.datos to javafx.fxml;
     opens com.proyecto2backend.logic to javafx.fxml;
-    opens com.proyecto2backend.servicios to javafx.fxml;
-    opens com.proyecto2backend.servicios.service to javafx.fxml;
+    opens com.proyecto2backend.servicios to com.google.gson;
+    opens com.proyecto2backend.servicios.service to com.google.gson;
 
 
     // Exports
