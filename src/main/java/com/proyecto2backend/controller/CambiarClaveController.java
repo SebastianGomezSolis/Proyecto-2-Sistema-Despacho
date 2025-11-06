@@ -1,12 +1,13 @@
 package com.proyecto2backend.controller;
 
-import com.proyecto2backend.logic.AdministradorLogica;
-import com.proyecto2backend.logic.FarmaceutaLogica;
-import com.proyecto2backend.logic.MedicoLogica;
+import com.proyecto2backend.servicios.*;
 import com.proyecto2backend.model.Administrador;
 import com.proyecto2backend.model.Farmaceuta;
 import com.proyecto2backend.model.Medico;
 import com.proyecto2backend.model.Usuario;
+import com.proyecto2backend.servicios.service.AdministradorSocketService;
+import com.proyecto2backend.servicios.service.FarmaceutaSocketService;
+import com.proyecto2backend.servicios.service.MedicoSocketService;
 import com.proyecto2backend.utilitarios.Sesion;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -19,6 +20,10 @@ public class CambiarClaveController {
     @FXML private PasswordField pwdVerificarClaveNueva;
     @FXML private Button btnAceptar;
     @FXML private Button btnCancelar;
+
+    private final AdministradorSocketService administradorSocketService = new AdministradorSocketService();
+    private final FarmaceutaSocketService farmaceutaSocketService = new FarmaceutaSocketService();
+    private final MedicoSocketService medicoSocketService = new MedicoSocketService();
 
     private String usuarioId; // Variable para almacenar el ID del usuario recibido desde LoginController
 
@@ -86,48 +91,82 @@ public class CambiarClaveController {
 
     private Usuario buscarUsuarioPorId(String id) {
         if (id == null || id.isBlank()) {
+            mostrarAlerta("Advertencia", "Debe ingresar un identificador válido.", Alert.AlertType.WARNING);
             return null;
         }
 
-        try {
+        Async.run(
+                () -> {
+                    try {
+                        if (id.startsWith("MED")) {
+                            return medicoSocketService.findByIdentificacion(id);
+                        } else if (id.startsWith("FAR")) {
+                            return farmaceutaSocketService.findByIdentificacion(id);
+                        } else if (id.startsWith("ADM")) {
+                            return administradorSocketService.findByIdentificacion(id);
+                        } else {
+                            return null;
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                usuario -> {
+                    if (usuario != null) {
+                        System.out.println("Usuario encontrado: " + usuario.getIdentificacion());
+                        mostrarAlerta("Éxito", "Usuario encontrado: " + usuario.getIdentificacion(), Alert.AlertType.INFORMATION);
+                    } else {
+                        mostrarAlerta("No encontrado", "No se encontró un usuario con el ID especificado.", Alert.AlertType.INFORMATION);
+                    }
+                },
+                ex -> {
+                    mostrarAlerta("Error", "Ocurrió un error al buscar usuario: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
 
-            if (id.startsWith("MED")) {
-                return new MedicoLogica().findByIdentificacion(id);
-
-            } else if (id.startsWith("FAR")) {
-                return new FarmaceutaLogica().findByIdentificacion(id);
-
-            } else if (id.startsWith("ADM")) {
-                return new AdministradorLogica().findByIdentificacion(id);
-            }
-        } catch (Exception e) {
-            mostrarAlerta("Error", "Ocurrio un error al encontrar usuario: " + e.getMessage(), Alert.AlertType.ERROR);
-            e.printStackTrace();
-        }
         return null;
     }
 
     private void actualizarClave(Usuario usuario, String nuevaClave) throws Exception {
-        String id = usuario.getIdentificacion();
-        usuario.setClave(nuevaClave);
-
-        if (id.startsWith("MED") && usuario instanceof Medico medico) {
-            new MedicoLogica().update(medico);
-
-        } else if (id.startsWith("FAR") && usuario instanceof Farmaceuta farma) {
-            new FarmaceutaLogica().update(farma);
-
-        } else if (id.startsWith("ADM") && usuario instanceof Administrador admin) {
-            new AdministradorLogica().update(admin);
-
-        } else {
-            throw new Exception("Tipo de usuario no reconocido: " + id);
+        if (usuario == null || nuevaClave == null || nuevaClave.isBlank()) {
+            mostrarAlerta("Error", "Usuario o clave inválidos.", Alert.AlertType.WARNING);
+            return;
         }
 
-        // Actualizar la sesión si el usuario actual cambió su clave
-        if (Sesion.getUsuarioActual() != null && Sesion.getUsuarioActual().getIdentificacion().equals(id)) {
-            Sesion.actualizarUsuario(usuario);
-        }
+        Async.run(
+                () -> {
+                    try {
+                        String id = usuario.getIdentificacion();
+                        usuario.setClave(nuevaClave);
+
+                        if (id.startsWith("MED") && usuario instanceof Medico medico) {
+                            medicoSocketService.update(medico);
+                        } else if (id.startsWith("FAR") && usuario instanceof Farmaceuta farma) {
+                            farmaceutaSocketService.update(farma);
+                        } else if (id.startsWith("ADM") && usuario instanceof Administrador admin) {
+                            administradorSocketService.update(admin);
+                        } else {
+                            throw new Exception("Tipo de usuario no reconocido: " + id);
+                        }
+
+                        // Actualizar sesión si corresponde
+                        if (Sesion.getUsuarioActual() != null &&
+                                Sesion.getUsuarioActual().getIdentificacion().equals(id)) {
+                            Sesion.actualizarUsuario(usuario);
+                        }
+
+                        return true;
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                ok -> {
+                    mostrarAlerta("Éxito", "Clave actualizada correctamente.", Alert.AlertType.INFORMATION);
+                },
+                ex -> {
+                    mostrarAlerta("Error", "No se pudo actualizar la clave: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
     @FXML

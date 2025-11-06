@@ -2,6 +2,8 @@ package com.proyecto2backend.model;
 
 public class Administrador extends Usuario {
     // Constructor con parametros
+    public Administrador() {}
+
     public Administrador(int id, String identificacion, String clave) {
         super(id, identificacion, clave);
     }

@@ -3,6 +3,8 @@ package com.proyecto2backend.model;
 public class Farmaceuta  extends Usuario {
     private String nombre;
 
+    public Farmaceuta() {}
+
     // Constructor con parametros
     public Farmaceuta(int id, String identificacion, String clave, String nombre) {
         super(id, identificacion, clave);

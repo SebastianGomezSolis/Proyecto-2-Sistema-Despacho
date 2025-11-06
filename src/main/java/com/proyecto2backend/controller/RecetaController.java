@@ -1,7 +1,7 @@
 package com.proyecto2backend.controller;
 
-import com.proyecto2backend.logic.RecetaLogica;
 import com.proyecto2backend.model.*;
+import com.proyecto2backend.servicios.service.RecetaSocketService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Spinner;
@@ -15,7 +15,8 @@ public class RecetaController {
     @FXML private Spinner<Integer> spp_duracion;
     @FXML private TextField txt_IndicacionesMedicamentos;
 
-    private final RecetaLogica recetaLogica = new RecetaLogica();
+    // private final RecetaLogica recetaLogica = new RecetaLogica();
+    private final RecetaSocketService recetaSocketService = new RecetaSocketService();
 
     private Receta recetaActual;
     private RecetaDetalle recetaDetalleSeleccionado;

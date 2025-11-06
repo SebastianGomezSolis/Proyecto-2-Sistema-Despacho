@@ -1,4 +1,4 @@
-package com.proyecto2backend.servicios;
+package com.proyecto2backend.servicios.chat;
 
 import java.io.*;
 import java.net.Socket;

@@ -916,6 +916,7 @@
                               </Label>
                            </children>
                         </Pane>
+                        <ProgressIndicator fx:id="progressDashBoard" layoutX="414.0" layoutY="37.0" prefHeight="25.0" prefWidth="21.0" visible="false" />
                      </children></AnchorPane>
               </content>
                <graphic>

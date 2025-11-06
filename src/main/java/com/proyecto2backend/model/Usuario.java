@@ -5,6 +5,8 @@ public abstract class Usuario {
     protected String identificacion;
     protected String clave;
 
+    public Usuario() {}
+
     protected Usuario(int id, String identificacion, String clave) {
         this.id = id;
         this.identificacion = identificacion;

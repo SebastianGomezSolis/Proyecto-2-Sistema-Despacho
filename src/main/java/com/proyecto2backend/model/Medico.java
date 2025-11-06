@@ -4,6 +4,8 @@ public class Medico extends Usuario {
     private String nombre;
     private String especialidad;
 
+    public Medico() {}
+
     // Constructor con parametros
     public Medico(int id, String identificacion, String clave, String nombre, String especialidad) {
         super(id, identificacion, clave);

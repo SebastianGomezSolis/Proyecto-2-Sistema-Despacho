@@ -1,6 +1,6 @@
 package com.proyecto2backend.controller;
 
-import com.proyecto2backend.servicios.UserChat;
+import com.proyecto2backend.servicios.chat.UserChat;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;

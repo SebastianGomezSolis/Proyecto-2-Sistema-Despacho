@@ -1,10 +1,10 @@
 package com.proyecto2backend.controller;
 
-import com.proyecto2backend.logic.MedicamentoLogica;
 import com.proyecto2backend.model.Medicamento;
 import com.proyecto2backend.model.Paciente;
 import com.proyecto2backend.model.Receta;
 import com.proyecto2backend.model.RecetaDetalle;
+import com.proyecto2backend.servicios.service.MedicamentoSocketService;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -43,7 +43,7 @@ public class AgregarMedicamentoController implements Initializable {
     private Receta recetaActual;
 
     private ObservableList<Medicamento> listaMedicamentos = FXCollections.observableArrayList();
-    MedicamentoLogica logica = new MedicamentoLogica();
+    private MedicamentoSocketService socket = new MedicamentoSocketService();
 
 
     @Override
@@ -65,8 +65,8 @@ public class AgregarMedicamentoController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        return logica.findAll();
-                    } catch (SQLException e) {
+                        return socket.findAll();
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 },
@@ -120,7 +120,7 @@ public class AgregarMedicamentoController implements Initializable {
                 () -> {
                     try {
                         // OPCIONAL: refrescar desde BD por si cambió algo
-                        Medicamento full = logica.findByCodigo(seleccionado.getCodigo());
+                        Medicamento full = socket.findByCodigo(seleccionado.getCodigo());
                         return (full != null ? full : seleccionado);
                     } catch (Exception e) {
                         throw new RuntimeException(e);

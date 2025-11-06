@@ -134,7 +134,6 @@ public class LoginController implements Initializable {
         return null;
     }
 
-
     private List<String> asignarPermisosPorPrefijo(String usuario) {
         if (usuario.length() < 3) {
             return List.of();

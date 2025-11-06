@@ -1,7 +1,7 @@
 package com.proyecto2backend.controller;
 
-import com.proyecto2backend.logic.PacienteLogica;
 import com.proyecto2backend.model.Paciente;
+import com.proyecto2backend.servicios.service.PacienteSocketService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,7 +24,7 @@ public class BuscarPacientesController {
     @FXML private Button BTT_AceptarPacientes;
 
     private final ObservableList<Paciente> listaObservable = FXCollections.observableArrayList();
-    private PacienteLogica pacienteLogica = new PacienteLogica();
+    private final PacienteSocketService pacienteSocketService = new PacienteSocketService();
     private Paciente pacienteSeleccionado;
 
     public Paciente getPacienteSeleccionado() {
@@ -58,7 +58,7 @@ public class BuscarPacientesController {
         Async.run(
                 () -> {
                     try {
-                        return pacienteLogica.findAll();
+                        return pacienteSocketService.findAll();
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -91,7 +91,7 @@ public class BuscarPacientesController {
 
             if ("ID".equals(criterio)) {
                 listaObservable.setAll(
-                        pacienteLogica.findAll().stream()
+                        pacienteSocketService.findAll().stream()
                                 .filter(p -> p.getIdentificacion().toLowerCase().contains(texto.toLowerCase()))
                                 .toList()
                 );
@@ -99,14 +99,14 @@ public class BuscarPacientesController {
                 if (texto.length() == 1) {
                     // Con una letra: buscar nombres que EMPIECEN por esa letra
                     listaObservable.setAll(
-                            pacienteLogica.findAll().stream()
+                            pacienteSocketService.findAll().stream()
                                     .filter(p -> p.getNombre().toLowerCase().startsWith(texto.toLowerCase()))
                                     .toList()
                     );
                 } else {
                     // Con 2+ letras: buscar nombres que CONTENGAN el texto
                     listaObservable.setAll(
-                            pacienteLogica.findAll().stream()
+                            pacienteSocketService.findAll().stream()
                                     .filter(p -> p.getNombre().toLowerCase().contains(texto.toLowerCase()))
                                     .toList()
                     );

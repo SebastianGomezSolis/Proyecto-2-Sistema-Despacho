@@ -1,7 +1,7 @@
 package com.proyecto2backend.controller;
 
-import com.proyecto2backend.logic.*;
 import com.proyecto2backend.model.*;
+import com.proyecto2backend.servicios.service.*;
 import com.proyecto2backend.utilitarios.Sesion;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -118,6 +118,7 @@ public class GestionMedicosController implements Initializable {
     @FXML private CategoryAxis rangosXAxis;
     @FXML private NumberAxis rangosYAxis;
     @FXML private PieChart chartEstadoPie;
+    @FXML private ProgressIndicator progressDashBoard;
 
     //Historico
     @FXML private TableView<Receta> TV_Historico;
@@ -139,6 +140,7 @@ public class GestionMedicosController implements Initializable {
     @FXML private ComboBox<String> CB_NuevoEstadoDespacho;
     @FXML private TextField TXT_RecetaDespacho;
     @FXML private ProgressIndicator progressDespacho;
+    @FXML private Button btn_ModificarDespacho;
 
     @FXML private Label LBL_Nombre;
 
@@ -154,13 +156,19 @@ public class GestionMedicosController implements Initializable {
     private final ObservableList<Receta> listaHistoricoRecetas = FXCollections.observableArrayList();
     private final ObservableList<Receta> listaDespachoRecetas = FXCollections.observableArrayList();
 
-    private final MedicoLogica medicoLogica = new MedicoLogica();
-    private final FarmaceutaLogica farmaceutaLogica = new FarmaceutaLogica();
-    private final PacienteLogica pacienteLogica = new PacienteLogica();
-    private final MedicamentoLogica medicamentoLogica = new MedicamentoLogica();
-    private final RecetaLogica recetaLogica = new RecetaLogica();
-    private DashBoardLogica dashBoardLogica;
+    // private final MedicoLogica medicoLogica = new MedicoLogica();
+    // private final FarmaceutaLogica farmaceutaLogica = new FarmaceutaLogica();
+    // private final PacienteLogica pacienteLogica = new PacienteLogica();
+    // private final MedicamentoLogica medicamentoLogica = new MedicamentoLogica();
+    // private final RecetaLogica recetaLogica = new RecetaLogica();
+    // private DashBoardLogica dashBoardLogica;
 
+    private final DashBoardSocketService dashBoardSocketService = new DashBoardSocketService();
+    private final FarmaceutaSocketService farmaceutaSocketService = new FarmaceutaSocketService();
+    private final MedicoSocketService medicoSocketService = new MedicoSocketService();
+    private final PacienteSocketService pacienteSocketService = new PacienteSocketService();
+    private final MedicamentoSocketService medicamentoSocketService = new MedicamentoSocketService();
+    private final RecetaSocketService recetaSocketService = new RecetaSocketService();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -315,8 +323,8 @@ public class GestionMedicosController implements Initializable {
             //listaRecetas.addAll(recetaLogica.findAll());
             refrescarTablaPrescripcion();
 
-            this.dashBoardLogica = new DashBoardLogica(recetaLogica);
-            cargarGraficos();
+            // this.dashBoardLogica = new DashBoardLogica(recetaLogica);
+            cargarGraficosAsync();
         } catch (Exception e) {
             Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, e);
         }
@@ -379,11 +387,6 @@ public class GestionMedicosController implements Initializable {
 
             Medico nuevoMedico = new Medico(0, identificacion, identificacion, nombre, especialidad);
 
-            Medico existente = medicoLogica.findByIdentificacion(identificacion);
-            if (existente != null) {
-                nuevoMedico.setId(existente.getId());
-            }
-
             agregarMedicoAsync(nuevoMedico, tablaMedicos);
         } catch (Exception e) {
             mostrarAlerta("Error", e.getMessage(), Alert.AlertType.ERROR);
@@ -398,11 +401,15 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
+                        Medico existente = medicoSocketService.findByIdentificacion(medico.getIdentificacion());
+                        if (existente != null) {
+                            medico.setId(existente.getId());
+                        }
                         if (esUpdate) {
-                            medicoLogica.update(medico);
+                            medicoSocketService.update(medico);
                             return medico;
                         } else {
-                            Medico creado = medicoLogica.create(medico);
+                            Medico creado = medicoSocketService.create(medico);
                             if (creado != null && creado.getId() > 0) {
                                 medico.setId(creado.getId());
                             }
@@ -475,7 +482,7 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        medicoLogica.deleteById(seleccionado.getId());
+                        medicoSocketService.deleteById(seleccionado.getId());
                         return seleccionado.getId();
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -526,8 +533,8 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        return medicoLogica.findAll();
-                    } catch (SQLException e) {
+                        return medicoSocketService.findAll();
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 },
@@ -549,9 +556,8 @@ public class GestionMedicosController implements Initializable {
     @FXML
     private void mostrarReporteMedico() {
         try {
-            listaMedicos.setAll(medicoLogica.findAll());
-            tablaMedicos.setItems(listaMedicos);
             limpiarCamposMedico();
+            refrescarTablaMedico();
         } catch (Exception e) {
             Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, e);
         }
@@ -564,16 +570,30 @@ public class GestionMedicosController implements Initializable {
         txtNombreMedico.clear();
         txtEspecialidadMedico.clear();
         txtBuscarMedico.clear();
-        refrescarTablaMedico();
     }
 
     private void refrescarTablaMedico() {
-        try {
-            listaMedicos.setAll(medicoLogica.findAll());
-            tablaMedicos.setItems(listaMedicos);
-        } catch (Exception e) {
-            Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, e);
-        }
+        progressMedicos.setVisible(true);
+
+        Async.run(
+                () -> {
+                    try {
+                        return medicoSocketService.findAll();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                medicos -> {
+                    progressMedicos.setVisible(false);
+                    listaMedicos.setAll(medicos);
+                    tablaMedicos.setItems(listaMedicos);
+                    tablaMedicos.refresh();
+                },
+                ex -> {
+                    progressMedicos.setVisible(false);
+                    mostrarAlerta("Error", "No se pudo refrescar la tabla de médicos: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
     // ======================== FARMACEUTAS =========================
@@ -602,12 +622,6 @@ public class GestionMedicosController implements Initializable {
             // Construcción siguiendo tu firma de modelo (id, identificacion, usuario?, nombre)
             Farmaceuta nuevoFarmaceuta = new Farmaceuta(0, identificacion, identificacion, nombre);
 
-            // Si existe -> update (como en Médicos)
-            Farmaceuta existente = farmaceutaLogica.findByIdentificacion(identificacion);
-            if (existente != null) {
-                nuevoFarmaceuta.setId(existente.getId());
-            }
-
             agregarFarmaceutaAsync(nuevoFarmaceuta, tablaFarmaceutas);
         } catch (Exception e) {
             mostrarAlerta("Error", e.getMessage(), Alert.AlertType.ERROR);
@@ -622,11 +636,15 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
+                        Farmaceuta existente = farmaceutaSocketService.findByIdentificacion(farmaceuta.getIdentificacion());
+                        if (existente != null) {
+                            farmaceuta.setId(existente.getId());
+                        }
                         if (esUpdate) {
-                            farmaceutaLogica.update(farmaceuta);
+                            farmaceutaSocketService.update(farmaceuta);
                             return farmaceuta;
                         } else {
-                            Farmaceuta creado = farmaceutaLogica.create(farmaceuta);
+                            Farmaceuta creado = farmaceutaSocketService.create(farmaceuta);
                             if (creado != null && creado.getId() > 0) {
                                 farmaceuta.setId(creado.getId());
                             }
@@ -701,7 +719,7 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        farmaceutaLogica.deleteById(seleccionado.getId());
+                        farmaceutaSocketService.deleteById(seleccionado.getId());
                         return seleccionado.getId();
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -751,8 +769,8 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        return farmaceutaLogica.findAll();
-                    } catch (SQLException e) {
+                        return farmaceutaSocketService.findAll();
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 },
@@ -774,9 +792,8 @@ public class GestionMedicosController implements Initializable {
     @FXML
     private void mostrarReporteFarmaceuta() {
         try {
-            listaFarmaceutas.setAll(farmaceutaLogica.findAll());
-            tablaFarmaceutas.setItems(listaFarmaceutas);
             limpiarCamposFarmaceuta();
+            refrescarTablaFarmaceuta();
         } catch (Exception error) {
             Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, error);
         }
@@ -788,16 +805,30 @@ public class GestionMedicosController implements Initializable {
         txtIdFarmaceutas.positionCaret(PREFIJO_ID_FARMACEUTA.length());
         txtNombreFarmaceutas.clear();
         txtBuscarFarmaceutas.clear();
-        refrescarTablaFarmaceuta();
     }
 
     private void refrescarTablaFarmaceuta() {
-        try {
-            listaFarmaceutas.setAll(farmaceutaLogica.findAll());
-            tablaFarmaceutas.setItems(listaFarmaceutas);
-        } catch (Exception e) {
-            Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, e);
-        }
+        progressFarmaceutas.setVisible(true);
+
+        Async.run(
+                () -> {
+                    try {
+                        return farmaceutaSocketService.findAll();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                farmaceutas -> {
+                    progressFarmaceutas.setVisible(false);
+                    listaFarmaceutas.setAll(farmaceutas);
+                    tablaFarmaceutas.setItems(listaFarmaceutas);
+                    tablaFarmaceutas.refresh();
+                },
+                ex -> {
+                    progressFarmaceutas.setVisible(false);
+                    mostrarAlerta("Error", "No se pudo refrescar la tabla de farmaceutas: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
     // =========================== PACIENTES ===========================
@@ -816,12 +847,6 @@ public class GestionMedicosController implements Initializable {
 
             Paciente nuevoPaciente = new Paciente(0, identificacion, nombre, fechaNacimiento, telefono);
 
-            // Si existe -> será UPDATE (seteamos id)
-            Paciente existente = pacienteLogica.findByIdentificacion(identificacion);
-            if (existente != null) {
-                nuevoPaciente.setId(existente.getId());
-            }
-
             agregarPacienteAsync(nuevoPaciente, tablaPacientes);
         } catch (Exception e) {
             mostrarAlerta("Error", e.getMessage(), Alert.AlertType.ERROR);
@@ -836,10 +861,14 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
+                        Paciente existente = pacienteSocketService.findByIdentificacion(paciente.getIdentificacion());
+                        if (existente != null) {
+                            paciente.setId(existente.getId());
+                        }
                         if (esUpdate) {
-                            pacienteLogica.update(paciente);
+                            pacienteSocketService.update(paciente);
                         } else {
-                            Paciente creado = pacienteLogica.create(paciente);
+                            Paciente creado = pacienteSocketService.create(paciente);
                             if (creado != null && creado.getId() > 0) {
                                 paciente.setId(creado.getId());
                             }
@@ -912,7 +941,7 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        pacienteLogica.deleteById(seleccionado.getId());
+                        pacienteSocketService.deleteById(seleccionado.getId());
                         return seleccionado.getId();
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -962,8 +991,8 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        return pacienteLogica.findAll();
-                    } catch (SQLException e) {
+                        return pacienteSocketService.findAll();
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 },
@@ -985,9 +1014,8 @@ public class GestionMedicosController implements Initializable {
     @FXML
     private void mostrarReportePaciente() {
         try {
-            listaPacientes.setAll(pacienteLogica.findAll());
-            tablaPacientes.setItems(listaPacientes);
             limpiarCamposPaciente();
+            refrescarTablaPaciente();
         } catch (Exception error) {
             Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, error);
         }
@@ -1001,16 +1029,30 @@ public class GestionMedicosController implements Initializable {
         txtTelefonoPaciente.clear();
         dtpFechaNacimientoPaciente.setValue(null);
         txtBuscarPaciente.clear();
-        refrescarTablaPaciente();
     }
 
     private void refrescarTablaPaciente() {
-        try {
-            listaPacientes.setAll(pacienteLogica.findAll());
-            tablaPacientes.setItems(listaPacientes);
-        } catch (Exception e) {
-            Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, e);
-        }
+        progressPacientes.setVisible(true);
+
+        Async.run(
+                () -> {
+                    try {
+                        return pacienteSocketService.findAll();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                pacientes -> {
+                    progressPacientes.setVisible(false);
+                    listaPacientes.setAll(pacientes);
+                    tablaPacientes.setItems(listaPacientes);
+                    tablaPacientes.refresh();
+                },
+                ex -> {
+                    progressPacientes.setVisible(false);
+                    mostrarAlerta("Error", "No se pudo refrescar la tabla de pacientes: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
 
@@ -1029,12 +1071,6 @@ public class GestionMedicosController implements Initializable {
 
             Medicamento nuevoMedicamento = new Medicamento(0, codigo, nombre, descripcion);
 
-            // Si existe -> será UPDATE (setea id)
-            Medicamento existente = medicamentoLogica.findByCodigo(codigo);
-            if (existente != null) {
-                nuevoMedicamento.setId(existente.getId());
-            }
-
             agregarMedicamentoAsync(nuevoMedicamento, tablaMedicamentos);
         } catch (Exception e) {
             mostrarAlerta("Error", e.getMessage(), Alert.AlertType.ERROR);
@@ -1049,10 +1085,14 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
+                        Medicamento existente = medicamentoSocketService.findByCodigo(medicamento.getCodigo());
+                        if (existente != null) {
+                            medicamento.setId(existente.getId());
+                        }
                         if (esUpdate) {
-                            medicamentoLogica.update(medicamento);
+                            medicamentoSocketService.update(medicamento);
                         } else {
-                            Medicamento creado = medicamentoLogica.create(medicamento);
+                            Medicamento creado = medicamentoSocketService.create(medicamento);
                             if (creado != null && creado.getId() > 0) {
                                 medicamento.setId(creado.getId());
                             }
@@ -1125,7 +1165,7 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        medicamentoLogica.deleteById(seleccionado.getId());
+                        medicamentoSocketService.deleteById(seleccionado.getId());
                         return seleccionado.getId();
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -1177,8 +1217,8 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        return medicamentoLogica.findAll();
-                    } catch (SQLException e) {
+                        return medicamentoSocketService.findAll();
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 },
@@ -1200,9 +1240,8 @@ public class GestionMedicosController implements Initializable {
     @FXML
     private void mostrarReporteMedicamento() {
         try {
-            listaMedicamentos.setAll(medicamentoLogica.findAll());
-            tablaMedicamentos.setItems(listaMedicamentos);
             limpiarCampoMedicamento();
+            refrescarTablaMedicamento();
         } catch (Exception error) {
             Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, error);
         }
@@ -1214,16 +1253,29 @@ public class GestionMedicosController implements Initializable {
         txtNombreMedicamento.clear();
         txtDescripcionMedicamneto.clear();
         txtBuscarMedicamento.clear();
-        refrescarTablaMedicamento();
     }
 
     private void refrescarTablaMedicamento() {
-        try {
-            listaMedicamentos.setAll(medicamentoLogica.findAll());
-            tablaMedicamentos.setItems(listaMedicamentos);
-        } catch (Exception e) {
-            Logger.getLogger(GestionMedicosController.class.getName()).log(Level.SEVERE, null, e);
-        }
+        progressMedicamentos.setVisible(true);
+        Async.run(
+                () -> {
+                    try {
+                        return medicamentoSocketService.findAll();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                medicamentos -> {
+                    progressMedicamentos.setVisible(false);
+                    listaMedicamentos.setAll(medicamentos);
+                    tablaMedicamentos.setItems(listaMedicamentos);
+                    tablaMedicamentos.refresh();
+                },
+                ex -> {
+                    progressMedicamentos.setVisible(false);
+                    mostrarAlerta("Error", "No se pudo refrescar la tabla de medicamentos: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
     // =========================== ALERTAS ===========================
@@ -1339,7 +1391,7 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        Receta creada = recetaLogica.create(receta);
+                        Receta creada = recetaSocketService.create(receta);
                         if (creada != null) {
                             receta.setId(creada.getId());
                             receta.setIdentificacion(creada.getIdentificacion());
@@ -1359,7 +1411,7 @@ public class GestionMedicosController implements Initializable {
 
                     recetaActual = null;
                     refrescarTablaPrescripcion();
-                    cargarGraficos();
+                    cargarGraficosAsync();
                     refrescarTablaHistorico();
                     dtpFechaRetiro.setValue(LocalDate.now());
                     LBL_Nombre.setText("Nombre");
@@ -1451,84 +1503,110 @@ public class GestionMedicosController implements Initializable {
     }
 
     // DASHBOARD
-    public void cargarGraficos() {
-        try {
-            chartEstado.setLegendVisible(false);
-            chartEstadoPie.setLegendVisible(false);
-            if (dashBoardLogica == null) {
-                System.err.println("[ERROR] dashBoardLogica es null");
-                return;
-            }
+    public void cargarGraficosAsync() {
+        progressDashBoard.setVisible(true); // si tienes un indicador visual
+        Async.run(
+                () -> {
+                    try {
+                        // Se obtiene la información desde el servicio (NO desde la lógica)
+                        int total = dashBoardSocketService.totalRecetas();
+                        LinkedHashMap<String, Long> estados = dashBoardSocketService.recetasPorEstado();
+                        return new Object[]{ total, estados };
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                result -> {
+                    // progressDashboard.setVisible(false);
+                    int total = (int) result[0];
+                    @SuppressWarnings("unchecked")
+                    LinkedHashMap<String, Long> estados = (LinkedHashMap<String, Long>) result[1];
 
-            // Totales
-            int total = dashBoardLogica.totalRecetas();
-            lblTotalRecetas.setText(String.valueOf(total));
+                    try {
+                        chartEstado.setLegendVisible(false);
+                        chartEstadoPie.setLegendVisible(false);
+                        lblTotalRecetas.setText(String.valueOf(total));
 
-            // Rangos → Barras
-            LinkedHashMap<String, Long> estados = dashBoardLogica.recetasPorEstado();
+                        // --- BARRAS ---
+                        if (chartEstado != null) {
+                            chartEstado.getData().clear();
+                            XYChart.Series<String, Number> serie = new XYChart.Series<>();
 
-            if (chartEstado != null) {
-                chartEstado.getData().clear();
-                XYChart.Series<String, Number> serie = new XYChart.Series<>();
+                            for (Map.Entry<String, Long> e : estados.entrySet()) {
+                                XYChart.Data<String, Number> data = new XYChart.Data<>(e.getKey(), e.getValue());
+                                serie.getData().add(data);
 
-                for (Map.Entry<String, Long> e : estados.entrySet()) {
-                    serie.getData().add(new XYChart.Data<>(e.getKey(), e.getValue()));
-                    XYChart.Data<String, Number> data = new XYChart.Data<>(e.getKey(), e.getValue());
-                    serie.getData().add(data);
-
-                    data.nodeProperty().addListener((obs, oldNode, newNode) -> {
-                        if (newNode != null) {
-                            switch (e.getKey()) {
-                                case "Confeccionada" ->
-                                        newNode.setStyle("-fx-bar-fill: #7B2CBF;"); // morado fuerte pastel
-                                case "Proceso" -> newNode.setStyle("-fx-bar-fill: #9D4EDD;"); // violeta suave
-                                case "Lista" -> newNode.setStyle("-fx-bar-fill: #C77DFF;"); // lila claro
-                                case "Entregada" -> newNode.setStyle("-fx-bar-fill: #E0AAFF;"); // lavanda pastel
+                                data.nodeProperty().addListener((obs, oldNode, newNode) -> {
+                                    if (newNode != null) {
+                                        switch (e.getKey()) {
+                                            case "Confeccionada" ->
+                                                    newNode.setStyle("-fx-bar-fill: #7B2CBF;");
+                                            case "Proceso" ->
+                                                    newNode.setStyle("-fx-bar-fill: #9D4EDD;");
+                                            case "Lista" ->
+                                                    newNode.setStyle("-fx-bar-fill: #C77DFF;");
+                                            case "Entregada" ->
+                                                    newNode.setStyle("-fx-bar-fill: #E0AAFF;");
+                                        }
+                                    }
+                                });
                             }
+                            chartEstado.getData().add(serie);
                         }
-                    });
-                }
-                chartEstado.getData().add(serie);
-            }
 
-            // Rangos → Pie
-            if (chartEstadoPie != null) {
-                chartEstadoPie.getData().clear();
-                for (Map.Entry<String, Long> e : estados.entrySet()) {
-                    if (e.getValue() > 0) {
-                        PieChart.Data data = new PieChart.Data(e.getKey(), e.getValue());
-                        chartEstadoPie.getData().add(data);
+                        // --- PIE ---
+                        if (chartEstadoPie != null) {
+                            chartEstadoPie.getData().clear();
+                            for (Map.Entry<String, Long> e : estados.entrySet()) {
+                                if (e.getValue() > 0) {
+                                    PieChart.Data data = new PieChart.Data(e.getKey(), e.getValue());
+                                    chartEstadoPie.getData().add(data);
 
-                        // Cuando el nodo se cree, aplica el color
-                        data.nodeProperty().addListener((obs, oldNode, newNode) -> {
-                            if (newNode != null) {
-                                switch (e.getKey()) {
-                                    case "Confeccionada" ->
-                                            newNode.setStyle("-fx-pie-color: #7B2CBF;"); // morado fuerte
-                                    case "Proceso" -> newNode.setStyle("-fx-pie-color: #9D4EDD;"); // violeta suave
-                                    case "Lista" -> newNode.setStyle("-fx-pie-color: #C77DFF;"); // lila claro
-                                    case "Entregada" -> newNode.setStyle("-fx-pie-color: #E0AAFF;"); // lavanda
+                                    data.nodeProperty().addListener((obs, oldNode, newNode) -> {
+                                        if (newNode != null) {
+                                            switch (e.getKey()) {
+                                                case "Confeccionada" ->
+                                                        newNode.setStyle("-fx-pie-color: #7B2CBF;");
+                                                case "Proceso" ->
+                                                        newNode.setStyle("-fx-pie-color: #9D4EDD;");
+                                                case "Lista" ->
+                                                        newNode.setStyle("-fx-pie-color: #C77DFF;");
+                                                case "Entregada" ->
+                                                        newNode.setStyle("-fx-pie-color: #E0AAFF;");
+                                            }
+                                        }
+                                    });
+
+                                    if (data.getNode() != null) {
+                                        switch (e.getKey()) {
+                                            case "Confeccionada" ->
+                                                    data.getNode().setStyle("-fx-pie-color: #7B2CBF;");
+                                            case "Proceso" ->
+                                                    data.getNode().setStyle("-fx-pie-color: #9D4EDD;");
+                                            case "Lista" ->
+                                                    data.getNode().setStyle("-fx-pie-color: #C77DFF;");
+                                            case "Entregada" ->
+                                                    data.getNode().setStyle("-fx-pie-color: #E0AAFF;");
+                                        }
+                                    }
                                 }
                             }
-                        });
-
-                        // Si ya está creado el nodo (caso raro, pero puede pasar), aplica el color directo
-                        if (data.getNode() != null) {
-                            switch (e.getKey()) {
-                                case "Confeccionada" -> data.getNode().setStyle("-fx-pie-color: #7B2CBF;");
-                                case "Proceso" -> data.getNode().setStyle("-fx-pie-color: #9D4EDD;");
-                                case "Lista" -> data.getNode().setStyle("-fx-pie-color: #C77DFF;");
-                                case "Entregada" -> data.getNode().setStyle("-fx-pie-color: #E0AAFF;");
-                            }
                         }
-                    }
-                }
-            }
 
-        } catch (Exception e) {
-            System.err.println("Error al cargar los graficos: " + e.getMessage());
-            e.printStackTrace();
-        }
+                    } catch (Exception e) {
+                        System.err.println("Error al pintar los gráficos: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                },
+                ex -> {
+                    // progressDashboard.setVisible(false);
+                    Alert a = new Alert(Alert.AlertType.ERROR);
+                    a.setTitle("Error al cargar los gráficos del dashboard");
+                    a.setHeaderText(null);
+                    a.setContentText(ex.getMessage());
+                    a.showAndWait();
+                }
+        );
     }
 
     // HISTORICO
@@ -1593,8 +1671,8 @@ public class GestionMedicosController implements Initializable {
         Async.run(
                 () -> {
                     try {
-                        return recetaLogica.findAll();
-                    } catch (SQLException e) {
+                        return recetaSocketService.findAll();
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 },
@@ -1619,17 +1697,26 @@ public class GestionMedicosController implements Initializable {
     }
 
     private void refrescarTablaHistorico() {
-        try {
-            listaHistoricoRecetas.clear();
-
-            List<Receta> recetas = recetaLogica.findAll();
-
-            listaHistoricoRecetas.addAll(recetas);
-            TV_Historico.refresh();
-
-        } catch (Exception e) {
-            mostrarAlerta("Error", "Error al refrescar la tabla de histórico: " + e.getMessage(), Alert.AlertType.ERROR);
-        }
+        progressHistorico.setVisible(true);
+        Async.run(
+                () -> {
+                    try {
+                        return recetaSocketService.findAll();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                recetas -> {
+                    progressHistorico.setVisible(false);
+                    listaHistoricoRecetas.clear();
+                    listaHistoricoRecetas.addAll(recetas);
+                    TV_Historico.refresh();
+                },
+                ex -> {
+                    progressHistorico.setVisible(false);
+                    mostrarAlerta("Error", "Error al refrescar la tabla de histórico: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
     }
 
 
@@ -1666,26 +1753,56 @@ public class GestionMedicosController implements Initializable {
             mostrarAlerta("Error", "Seleccione una receta.", Alert.AlertType.WARNING);
             return;
         }
-        try {
-            seleccionada.setEstado(estado);
-            recetaLogica.update(seleccionada);
-            listaDespachoRecetas.setAll(recetaLogica.findAll());
-            CB_NuevoEstadoDespacho.setValue(null);
-            //limpiarDespacho();
-            refrescarTablaHistorico();
-            cargarGraficos();
-        } catch (Exception e) {
-            mostrarAlerta("Error", e.getMessage(), Alert.AlertType.ERROR);
+        if (estado == null || estado.isBlank()) {
+            mostrarAlerta("Error", "Seleccione un nuevo estado para la receta.", Alert.AlertType.WARNING);
+            return;
         }
+
+        guardarDespachoAsync(seleccionada, estado);
     }
+
+    private void guardarDespachoAsync(Receta receta, String nuevoEstado) {
+        progressDespacho.setVisible(true);
+        btn_ModificarDespacho.setDisable(true);
+
+        Async.run(
+                () -> {
+                    try {
+                        receta.setEstado(nuevoEstado);
+                        recetaSocketService.update(receta);
+                        return recetaSocketService.findAll();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                recetasActualizadas -> {
+                    progressDespacho.setVisible(false);
+                    btn_ModificarDespacho.setDisable(false);
+
+                    listaDespachoRecetas.setAll(recetasActualizadas);
+                    CB_NuevoEstadoDespacho.setValue(null);
+                    limpiarDespacho();
+                    refrescarTablaHistorico();
+                    cargarGraficosAsync();
+
+                    mostrarAlerta("Éxito", "Receta actualizada correctamente.", Alert.AlertType.INFORMATION);
+                },
+                ex -> {
+                    progressDespacho.setVisible(false);
+                    btn_ModificarDespacho.setDisable(false);
+                    mostrarAlerta("Error al actualizar el despacho", ex.getMessage(), Alert.AlertType.ERROR);
+                }
+        );
+    }
+
 
     public void cargarDespachoAsync() {
         progressDespacho.setVisible(true);
         Async.run(
                 () -> {
                     try {
-                        return recetaLogica.findAll();
-                    } catch (SQLException e) {
+                        return recetaSocketService.findAll();
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 },

@@ -1,4 +1,5 @@
-USE hotel;
+CREATE DATABASE IF NOT EXISTS hospital;
+USE hospital;
 
 CREATE TABLE receta (
     id int auto_increment primary key,
